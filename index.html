@@ -1,0 +1,1425 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#0b0d10" id="themeColor">
+<title>OpenCode Go 套餐模型使用指南</title>
+<script>
+(function(){
+  try{
+    var s=localStorage.getItem('ocgo-theme');
+    var light=window.matchMedia&&window.matchMedia('(prefers-color-scheme: light)').matches;
+    document.documentElement.dataset.theme=(s==='light'||s==='dark')?s:(light?'light':'dark');
+  }catch(e){document.documentElement.dataset.theme='dark';}
+})();
+</script>
+<style>
+  :root{
+    --bg:#0b0d10; --surface:#12151a; --surface-2:#181c22; --surface-3:#1f242b;
+    --border:rgba(255,255,255,.08); --border-strong:rgba(255,255,255,.14);
+    --text:#e8ebf0; --muted:#9aa3b2; --faint:#7f8896;
+    --accent:#f2b544; --accent-ink:#171006; --accent-soft:rgba(242,181,68,.12);
+    --positive:#5fd0a0; --positive-soft:rgba(95,208,160,.1);
+    --warning:#ff8a5c; --warning-soft:rgba(255,138,92,.1);
+    --danger:#ff6b81;
+    --tier-s:#ff6b81; --tier-s-ink:#1a0a0e;
+    --tier-a:#f2b544; --tier-a-ink:#171006;
+    --tier-b:#6cc7ff; --tier-b-ink:#06131a;
+    --tier-c:#8b93a1; --tier-c-ink:#111111;
+    --code-bg:#1b1f26; --code-text:#ffd9a0;
+    --shadow:0 1px 0 rgba(255,255,255,.04),0 12px 32px rgba(0,0,0,.28);
+    --shadow-sm:0 1px 0 rgba(255,255,255,.04),0 4px 14px rgba(0,0,0,.2);
+    --glass:rgba(18,21,26,.62); --glass-strong:rgba(14,16,20,.8);
+    --glass-border:rgba(255,255,255,.16); --glass-highlight:rgba(255,255,255,.18);
+    --glass-shadow:0 12px 40px rgba(0,0,0,.38);
+    --glass-shadow-hover:0 18px 48px rgba(0,0,0,.46);
+    --table-bg:rgba(18,21,26,.82); --table-head:rgba(24,28,34,.94);
+    --row-alt:rgba(255,255,255,.03); --row-hover:rgba(255,255,255,.06);
+    --glow-a:rgba(242,181,68,.16); --glow-b:rgba(108,199,255,.13); --glow-c:rgba(95,208,160,.1);
+    --logo-ink:#ffffff; --logo-opacity:.14; --logo-glow:rgba(242,181,68,.3);
+    --focus:#f2b544; --nav-bg:rgba(11,13,16,.86);
+    --stripe:var(--row-alt); --hover:var(--row-hover);
+    --radius-lg:14px; --radius-md:10px; --radius-sm:7px;
+    --gutter:clamp(16px,3vw,32px); --maxw:1320px; --nav-h:56px;
+    --sans:"Segoe UI Variable Text","Segoe UI",-apple-system,"Microsoft YaHei UI","Microsoft YaHei",Roboto,sans-serif;
+    --mono:"Cascadia Code","SFMono-Regular",Consolas,"Liberation Mono",monospace;
+    /* 兼容旧内联样式里的变量名 */
+    --panel:var(--surface); --panel2:var(--surface-2);
+    --accent2:var(--warning); --ok:var(--positive); --no:var(--faint);
+    --s:var(--tier-s); --a:var(--tier-a); --b:var(--tier-b); --c:var(--tier-c);
+  }
+  [data-theme="light"]{
+    --bg:#f6f4ef; --surface:#ffffff; --surface-2:#f0eee8; --surface-3:#e8e5dd;
+    --border:rgba(24,24,24,.12); --border-strong:rgba(24,24,24,.2);
+    --text:#1a1c1f; --muted:#5d6470; --faint:#5a616c;
+    --accent:#8a5a00; --accent-ink:#ffffff; --accent-soft:rgba(138,90,0,.09);
+    --positive:#0f7a52; --positive-soft:rgba(15,122,82,.08);
+    --warning:#b5471f; --warning-soft:rgba(181,71,31,.08);
+    --danger:#b3263c;
+    --tier-s:#c92f4a; --tier-s-ink:#ffffff;
+    --tier-a:#a86400; --tier-a-ink:#ffffff;
+    --tier-b:#0b6f9e; --tier-b-ink:#ffffff;
+    --tier-c:#5d6470; --tier-c-ink:#ffffff;
+    --code-bg:#f0eee8; --code-text:#7a3e00;
+    --shadow:0 1px 0 rgba(255,255,255,.8),0 10px 30px rgba(30,30,30,.08);
+    --shadow-sm:0 1px 0 rgba(255,255,255,.8),0 3px 10px rgba(30,30,30,.06);
+    --glass:rgba(255,255,255,.62); --glass-strong:rgba(255,255,255,.84);
+    --glass-border:rgba(30,30,30,.09); --glass-highlight:rgba(255,255,255,.95);
+    --glass-shadow:0 12px 40px rgba(31,35,40,.12);
+    --glass-shadow-hover:0 18px 44px rgba(31,35,40,.17);
+    --table-bg:rgba(255,255,255,.8); --table-head:rgba(255,255,255,.93);
+    --row-alt:rgba(24,24,24,.025); --row-hover:rgba(24,24,24,.055);
+    --glow-a:rgba(255,196,92,.4); --glow-b:rgba(120,170,255,.24); --glow-c:rgba(120,210,170,.22);
+    --logo-ink:#1a1c1f; --logo-opacity:.12; --logo-glow:rgba(255,176,64,.38);
+    --focus:#8a5a00; --nav-bg:rgba(246,244,239,.88);
+    --stripe:var(--row-alt); --hover:var(--row-hover);
+  }
+  html{color-scheme:dark;scroll-behavior:smooth;scroll-padding-top:calc(var(--nav-h) + 24px);
+    scrollbar-color:var(--border-strong) transparent}
+  [data-theme="light"]{color-scheme:light}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);
+    font-family:var(--sans);font-size:15px;line-height:1.65;
+    -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+  body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+    background:
+      radial-gradient(48vmax 48vmax at 8% -4%,var(--glow-a),transparent 62%),
+      radial-gradient(42vmax 42vmax at 96% 8%,var(--glow-b),transparent 64%),
+      radial-gradient(52vmax 46vmax at 48% 104%,var(--glow-c),transparent 68%)}
+  .bg-logo{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:0;
+    width:clamp(200px,30vw,420px);color:var(--logo-ink);opacity:var(--logo-opacity);
+    pointer-events:none;user-select:none}
+  .bg-logo::before{content:"";position:absolute;inset:-32%;z-index:-1;border-radius:50%;
+    background:radial-gradient(circle,var(--logo-glow),transparent 68%);
+    -webkit-filter:blur(46px);filter:blur(46px)}
+  .bg-logo svg{display:block;width:100%;height:auto}
+  .bg-logo .frame{fill:none;stroke:currentColor;stroke-width:2;
+    vector-effect:non-scaling-stroke;opacity:.8}
+  .bg-logo .inner{fill:currentColor;fill-opacity:.18;stroke:currentColor;stroke-width:2;
+    vector-effect:non-scaling-stroke;opacity:.9}
+  ::selection{background:var(--accent);color:var(--accent-ink)}
+  a{color:var(--accent)}
+  :where(a,button,input,select,summary,.table-scroll,.code-block):focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+  .wrap{position:relative;z-index:1;max-width:var(--maxw);margin:0 auto;padding:0 var(--gutter) 88px}
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;
+    clip:rect(0,0,0,0);white-space:nowrap;border:0}
+  .nowrap{white-space:nowrap}
+  .skip-link{position:absolute;left:16px;top:-64px;z-index:100;background:var(--accent);
+    color:var(--accent-ink);padding:10px 14px;border-radius:var(--radius-sm);
+    text-decoration:none;font-weight:650;transition:top .15s ease-out}
+  .skip-link:focus{top:12px}
+
+  /* header */
+  .masthead{padding-top:clamp(22px,4vw,36px)}
+  .topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;
+    padding-bottom:18px;border-bottom:1px solid var(--border)}
+  .brand{font-family:var(--mono);font-size:11px;letter-spacing:.18em;color:var(--faint)}
+  .brand b{color:var(--text);font-weight:600}
+  h1{margin:26px 0 12px;font-size:clamp(30px,4.2vw,46px);line-height:1.14;
+    letter-spacing:-.025em;font-weight:700;text-wrap:balance}
+  h1 .badge{display:inline-flex;align-items:center;vertical-align:middle;margin-left:10px;
+    padding:6px 9px;border:1px solid var(--border-strong);border-radius:999px;
+    background:var(--accent-soft);color:var(--accent);
+    font:600 10.5px/1 var(--mono);letter-spacing:.06em}
+  .lede{max-width:72ch;margin:0 0 16px;color:var(--muted);font-size:15px;text-wrap:pretty}
+  .meta-row{display:flex;flex-wrap:wrap;gap:6px 16px;margin:0;
+    font-family:var(--mono);font-size:11.5px;color:var(--faint)}
+  .meta-row span{display:inline-flex;align-items:center;gap:6px}
+  .meta-row span+span::before{content:"";width:3px;height:3px;border-radius:50%;
+    background:var(--border-strong)}
+  .sources{margin:16px 0 0;border:1px solid var(--glass-border);border-radius:var(--radius-md);
+    background:var(--glass);box-shadow:var(--glass-shadow),inset 0 1px 0 var(--glass-highlight);
+    -webkit-backdrop-filter:blur(20px) saturate(1.45);backdrop-filter:blur(20px) saturate(1.45)}
+  .sources summary{cursor:pointer;list-style:none;display:flex;align-items:center;
+    justify-content:space-between;gap:12px;min-height:44px;padding:10px 16px;
+    font-size:12.5px;color:var(--muted)}
+  .sources summary::-webkit-details-marker{display:none}
+  .sources summary::after{content:"+";font-family:var(--mono);font-size:16px;
+    line-height:1;color:var(--accent)}
+  .sources[open] summary::after{content:"−"}
+  .sources .body{padding:14px 16px 16px;border-top:1px solid var(--border);
+    color:var(--muted);font-size:12.5px;line-height:1.75}
+  .sources .body b{color:var(--text)}
+  .sources .body p{margin:0 0 10px}
+  .sources .body p:last-child{margin:0}
+  .stat-strip{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:1px;
+    margin:24px 0 0;background:var(--glass-border);border:1px solid var(--glass-border);
+    border-radius:var(--radius-lg);overflow:hidden;
+    box-shadow:var(--glass-shadow),inset 0 1px 0 var(--glass-highlight);
+    -webkit-backdrop-filter:blur(22px) saturate(1.5);backdrop-filter:blur(22px) saturate(1.5)}
+  .stat{min-width:0;background:var(--glass);padding:18px 20px}
+  .stat--note{display:none}
+  .stat .n{font-size:clamp(23px,2.6vw,32px);font-weight:700;line-height:1.1;
+    letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+  .stat .l{margin-top:5px;font-size:11.5px;color:var(--muted);line-height:1.45}
+
+  /* theme toggle */
+  .theme-toggle{position:relative;width:44px;height:44px;display:inline-flex;
+    align-items:center;justify-content:center;flex:0 0 auto;border:1px solid var(--glass-border);
+    border-radius:999px;background:var(--glass);color:var(--text);cursor:pointer;
+    box-shadow:var(--glass-shadow),inset 0 1px 0 var(--glass-highlight);
+    -webkit-backdrop-filter:blur(18px) saturate(1.5);backdrop-filter:blur(18px) saturate(1.5);
+    transition:background-color .14s,border-color .14s,transform .1s}
+  .theme-toggle:hover{background:var(--glass-strong);border-color:var(--border-strong)}
+  .theme-toggle:active{transform:scale(.96)}
+  .theme-toggle svg{position:absolute;width:18px;height:18px;fill:none;stroke:currentColor;
+    stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;
+    transition:opacity .18s,transform .18s,filter .18s}
+  .theme-toggle .sun{opacity:0;transform:scale(.25);filter:blur(4px)}
+  .theme-toggle .moon{opacity:1;transform:scale(1)}
+  [data-theme="light"] .theme-toggle .sun{opacity:1;transform:scale(1);filter:blur(0)}
+  [data-theme="light"] .theme-toggle .moon{opacity:0;transform:scale(.25);filter:blur(4px)}
+
+  /* nav */
+  .nav-wrap{position:sticky;top:0;z-index:50;margin:26px calc(var(--gutter) * -1) 30px;
+    padding:8px var(--gutter);background:var(--glass-strong);
+    border-bottom:1px solid var(--glass-border);
+    box-shadow:0 10px 30px rgba(0,0,0,.12),inset 0 1px 0 var(--glass-highlight);
+    -webkit-backdrop-filter:blur(26px) saturate(1.6);
+    backdrop-filter:blur(26px) saturate(1.6)}
+  .nav-inner{max-width:var(--maxw);margin:0 auto;display:flex;gap:4px;
+    overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .nav-inner::-webkit-scrollbar{display:none}
+  .nav-inner a{flex:0 0 auto;display:inline-flex;align-items:center;min-height:40px;
+    padding:0 12px;border:1px solid transparent;border-radius:999px;color:var(--muted);
+    text-decoration:none;font-size:13px;white-space:nowrap;
+    transition:color .14s,background-color .14s,border-color .14s}
+  .nav-inner a:hover{color:var(--text);background:var(--glass);border-color:var(--glass-border)}
+  .nav-inner a[aria-current="true"]{color:var(--text);background:var(--glass);
+    border-color:var(--glass-border);box-shadow:inset 0 1px 0 var(--glass-highlight)}
+
+  /* 30 秒结论 */
+  .quick{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+    gap:12px;margin:0 0 42px;padding-top:0;border-top:0}
+  .quick a{display:flex;flex-direction:column;gap:7px;min-height:100%;
+    padding:18px 20px;border:1px solid var(--glass-border);border-radius:var(--radius-lg);
+    background:var(--glass);color:var(--text);text-decoration:none;
+    box-shadow:var(--glass-shadow),inset 0 1px 0 var(--glass-highlight);
+    -webkit-backdrop-filter:blur(20px) saturate(1.45);backdrop-filter:blur(20px) saturate(1.45);
+    transition:transform .16s,box-shadow .16s,border-color .16s}
+  .quick a:hover{transform:translateY(-2px);border-color:var(--border-strong);
+    box-shadow:var(--glass-shadow-hover),inset 0 1px 0 var(--glass-highlight)}
+  .quick a:active{transform:scale(.995)}
+  .q-kicker{font:600 10px/1 var(--mono);letter-spacing:.14em;color:var(--accent)}
+  .quick strong{font-size:15.5px;line-height:1.4;font-weight:650;text-wrap:balance}
+  .quick span{font-size:12.5px;line-height:1.6;color:var(--muted)}
+  .quick .q-link{margin-top:auto;padding-top:6px;color:var(--accent);font-size:11.5px;
+    font-family:var(--mono);letter-spacing:.04em}
+
+  /* sections */
+  section{margin:0 0 64px;padding-top:22px;border-top:1px solid var(--border)}
+  h2{margin:0 0 8px;font-size:clamp(21px,2.4vw,27px);line-height:1.25;
+    letter-spacing:-.015em;font-weight:700;text-wrap:balance}
+  h2::before{content:attr(data-kicker);display:block;margin-bottom:9px;
+    font:600 10.5px/1 var(--mono);letter-spacing:.16em;color:var(--accent)}
+  h3{margin:32px 0 10px;font-size:15px;line-height:1.45;color:var(--text);font-weight:650}
+  .desc{max-width:80ch;margin:0 0 18px;color:var(--muted);font-size:13.5px;text-wrap:pretty}
+
+  /* tools */
+  .tools{display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap;margin:0 0 14px}
+  .field{display:flex;flex-direction:column;gap:5px;min-width:0}
+  .field label{font:600 10px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;
+    color:var(--faint)}
+  .field--search{flex:1 1 240px;max-width:380px}
+  .field--sort{display:none}
+  input[type=search],select{width:100%;min-height:40px;padding:8px 12px;
+    border:1px solid var(--glass-border);border-radius:var(--radius-sm);background:var(--glass);
+    color:var(--text);font:inherit;font-size:13px;
+    -webkit-backdrop-filter:blur(16px) saturate(1.4);backdrop-filter:blur(16px) saturate(1.4);
+    transition:border-color .14s,background-color .14s}
+  input[type=search]:hover,select:hover{border-color:var(--border-strong)}
+  input[type=search]::placeholder{color:var(--faint)}
+  .legend{display:flex;gap:12px 18px;flex-wrap:wrap;margin:0 0 14px;
+    font-size:11.5px;color:var(--muted)}
+  .legend span{display:inline-flex;align-items:center;gap:6px}
+  .legend b{color:var(--text);font-weight:600}
+  .tag{font-size:11.5px;color:var(--muted)}
+  .mono{font-family:var(--mono)}
+
+  /* tables */
+  table{width:100%;border-collapse:separate;border-spacing:0;background:var(--table-bg);
+    border:1px solid var(--glass-border);border-radius:var(--radius-lg);font-size:13.5px;
+    box-shadow:var(--glass-shadow)}
+  thead th{position:sticky;top:var(--nav-h);z-index:6;background:var(--table-head);
+    padding:11px 12px;text-align:left;font-size:11px;line-height:1.3;font-weight:600;
+    letter-spacing:.04em;color:var(--muted);border-bottom:1px solid var(--glass-border);
+    white-space:nowrap}
+  thead th:first-child{border-top-left-radius:var(--radius-lg)}
+  thead th:last-child{border-top-right-radius:var(--radius-lg)}
+  tbody td{padding:11px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
+  tbody tr:last-child td{border-bottom:0}
+  tbody tr:last-child td:first-child{border-bottom-left-radius:var(--radius-lg)}
+  tbody tr:last-child td:last-child{border-bottom-right-radius:var(--radius-lg)}
+  tbody tr:nth-child(even){background:var(--stripe)}
+  tbody tr:hover{background:var(--hover)}
+  .num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+  thead th.sortable{padding:0}
+  .sort-btn{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:6px;
+    width:100%;min-height:44px;padding:10px 12px;cursor:pointer;font:inherit;
+    color:inherit;border-radius:0}
+  .sort-btn:hover{color:var(--text)}
+  .sort-btn:focus-visible{outline:2px solid var(--focus);outline-offset:-2px;border-radius:8px}
+  th.num .sort-btn{justify-content:flex-end}
+  .sort-arrow{width:7px;height:7px;border-right:1.5px solid currentColor;
+    border-bottom:1.5px solid currentColor;transform:rotate(45deg);opacity:.3;
+    margin-top:-3px;transition:transform .15s,opacity .15s}
+  th[aria-sort="ascending"] .sort-arrow{transform:rotate(-135deg);opacity:1}
+  th[aria-sort="descending"] .sort-arrow{transform:rotate(45deg);opacity:1}
+  .table-scroll{overflow-x:auto;border-radius:var(--radius-lg)}
+  .table-scroll.is-scrollable{-webkit-mask-image:linear-gradient(to right,#000 0,#000 calc(100% - 30px),transparent 100%);
+    mask-image:linear-gradient(to right,#000 0,#000 calc(100% - 30px),transparent 100%)}
+  .table-scroll.is-scrollable:focus-visible{-webkit-mask-image:none;mask-image:none}
+  .table-scroll:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+  .table-scroll thead th{position:static}
+  .table-scroll table{min-width:680px}
+
+  /* tier + modalities */
+  .tier{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;
+    width:24px;height:24px;border-radius:var(--radius-sm);
+    font:700 11px/1 var(--mono)}
+  .tS{background:var(--tier-s);color:var(--tier-s-ink)}
+  .tA{background:var(--tier-a);color:var(--tier-a-ink)}
+  .tB{background:var(--tier-b);color:var(--tier-b-ink)}
+  .tC{background:var(--tier-c);color:var(--tier-c-ink)}
+  .mod{display:inline-flex;align-items:center;gap:5px;margin:1px 4px 1px 0;
+    padding:2px 7px;border:1px solid var(--border);border-radius:999px;
+    color:var(--muted);font-size:10.5px;line-height:1.4;white-space:nowrap}
+  .mod::before{content:"";width:5px;height:5px;border-radius:50%;background:currentColor;
+    opacity:.8}
+  .m-vision{color:var(--positive);border-color:color-mix(in srgb,var(--positive) 40%,transparent)}
+  .m-pdf{color:#c084fc;border-color:color-mix(in srgb,#c084fc 40%,transparent)}
+  [data-theme="light"] .m-pdf{color:#7b3fb3;border-color:color-mix(in srgb,#7b3fb3 40%,transparent)}
+  .m-video{color:var(--warning);border-color:color-mix(in srgb,var(--warning) 40%,transparent)}
+  .m-audio{color:var(--accent);border-color:color-mix(in srgb,var(--accent) 40%,transparent)}
+  .m-text{color:var(--faint)}
+  .flag-new{display:inline-block;margin-left:6px;padding:1px 5px;border-radius:4px;
+    background:var(--accent);color:var(--accent-ink);
+    font:700 10px/1.6 var(--mono);vertical-align:middle}
+  .bar{position:relative;height:6px;min-width:70px;border-radius:3px;overflow:hidden;
+    background:var(--surface-3)}
+  .bar i{position:absolute;left:0;top:0;bottom:0;border-radius:3px;
+    background:linear-gradient(90deg,var(--warning),var(--accent))}
+
+  /* boxes + callouts */
+  .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));
+    gap:14px}
+  .box{background:var(--glass);border:1px solid var(--glass-border);
+    border-radius:var(--radius-lg);padding:18px 20px;
+    box-shadow:var(--glass-shadow),inset 0 1px 0 var(--glass-highlight);
+    -webkit-backdrop-filter:blur(20px) saturate(1.4);backdrop-filter:blur(20px) saturate(1.4)}
+  .box h4{margin:0 0 8px;font-size:14px;color:var(--accent)}
+  .box ul{margin:0;padding-left:18px}
+  .box li{margin-bottom:6px;font-size:13px;line-height:1.65}
+  .pick,.warn{position:relative;margin:0 0 14px;padding:18px 20px;
+    border:0;border-left:2px solid var(--positive);border-radius:0 var(--radius-lg) var(--radius-lg) 0;
+    background:linear-gradient(var(--positive-soft),var(--positive-soft)),var(--glass);
+    box-shadow:var(--glass-shadow),inset 0 1px 0 var(--glass-highlight);
+    -webkit-backdrop-filter:blur(18px) saturate(1.35);backdrop-filter:blur(18px) saturate(1.35)}
+  .warn{border-left-color:var(--warning);
+    background:linear-gradient(var(--warning-soft),var(--warning-soft)),var(--glass)}
+  .pick h4,.warn h4{margin:0 0 8px;font-size:14.5px;color:var(--text)}
+  code{background:var(--code-bg);color:var(--code-text);padding:2px 6px;border-radius:5px;
+    font-family:var(--mono);font-size:.88em;overflow-wrap:anywhere}
+  .code-block{background:#12151a!important;border:1px solid rgba(255,255,255,.08);
+    border-radius:var(--radius-md);color:#e8ebf0}
+  .foot{margin-top:48px;padding-top:20px;border-top:1px solid var(--border);
+    color:var(--faint);font-size:11.5px;line-height:1.8}
+
+  /* mobile cards */
+  .mobile-cards{display:none}
+  .mobile-cards ul{list-style:none;margin:0;padding:0;display:grid;gap:10px;
+    grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr))}
+  .model-card{background:var(--glass);border:1px solid var(--glass-border);
+    border-radius:var(--radius-lg);padding:16px;
+    box-shadow:var(--glass-shadow),inset 0 1px 0 var(--glass-highlight);
+    -webkit-backdrop-filter:blur(20px) saturate(1.4);backdrop-filter:blur(20px) saturate(1.4)}
+  .mc-top{display:flex;align-items:flex-start;gap:10px}
+  .mc-name{flex:1;min-width:0;font-size:14.5px;line-height:1.4;font-weight:650}
+  .mc-score{flex:0 0 auto;padding:3px 7px;border-radius:6px;background:var(--accent-soft);
+    color:var(--accent);font:600 11.5px/1.4 var(--mono);white-space:nowrap}
+  .mc-note{margin:8px 0 12px;color:var(--muted);font-size:12px;line-height:1.55}
+  .mc-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 14px;
+    margin:0 0 12px}
+  .mc-grid div{display:flex;align-items:baseline;justify-content:space-between;gap:8px;
+    padding-bottom:5px;border-bottom:1px dashed var(--border)}
+  .mc-grid dt{font-family:var(--mono);font-size:10.5px;color:var(--faint)}
+  .mc-grid dd{margin:0;font-size:12.5px;font-variant-numeric:tabular-nums;text-align:right}
+  .mc-mods{display:flex;flex-wrap:wrap;gap:2px}
+
+  @media(min-width:761px) and (max-width:1100px){
+    .stat--note{display:block}
+  }
+  @media(max-width:1100px){
+    .stat-strip{grid-template-columns:repeat(3,minmax(0,1fr))}
+  }
+  @media(max-width:1240px){
+    #main,#allTable{display:none}
+    .mobile-cards{display:block}
+    .field--sort{display:flex}
+  }
+  @media(max-width:900px){
+    .quick{grid-template-columns:1fr}
+    .table-scroll th:first-child,.table-scroll td:first-child{min-width:165px}
+    #tValue th:first-child,#tValue td:first-child,
+    #tPrice th:first-child,#tPrice td:first-child,
+    #tQuota th:first-child,#tQuota td:first-child{min-width:44px}
+    #tValue th:nth-child(2),#tValue td:nth-child(2),
+    #tPrice th:nth-child(2),#tPrice td:nth-child(2),
+    #tQuota th:nth-child(2),#tQuota td:nth-child(2){min-width:165px}
+  }
+  @media (pointer:coarse){
+    input[type=search],select{font-size:16px;min-height:44px}
+    .nav-inner a{min-height:44px}
+  }
+
+  @media(max-width:760px){
+    html{scroll-behavior:auto}
+    .wrap{padding:0 16px 64px}
+    .nav-wrap{margin:20px -16px 24px;padding:8px 16px}
+    .nav-inner{-webkit-mask-image:linear-gradient(to right,#000 0,#000 calc(100% - 28px),transparent 100%);
+      mask-image:linear-gradient(to right,#000 0,#000 calc(100% - 28px),transparent 100%)}
+    .nav-inner a{min-height:44px}
+    h1{font-size:clamp(26px,7vw,34px)}
+    .meta-row{font-size:11.5px;gap:4px 12px}
+    .meta-row span+span::before{display:none}
+    .stat-strip{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .stat{padding:14px 16px}
+    .stat--wide{grid-column:1/-1}
+    .grid2{grid-template-columns:1fr}
+    .field--search{max-width:none}
+    .tools .tag{flex-basis:100%;margin-top:2px}
+    .mc-grid dt{font-size:11px}
+    .model-card{-webkit-backdrop-filter:blur(10px) saturate(1.25);
+      backdrop-filter:blur(10px) saturate(1.25)}
+    section{margin-bottom:52px}
+  }
+  @media(max-width:360px){
+    .meta-row{font-size:11px}
+  }
+
+  @media(prefers-reduced-motion:reduce){
+    html{scroll-behavior:auto}
+    *,*::before,*::after{transition-duration:.01ms!important;animation-duration:.01ms!important;
+      animation-iteration-count:1!important}
+  }
+
+  @page{size:A4 landscape;margin:10mm}
+
+  @media print{
+    :root{
+      --bg:#fff;--surface:#fff;--surface-2:#f3f3f3;--surface-3:#e9e9e9;
+      --border:#d7d7d7;--border-strong:#bcbcbc;--text:#111;--muted:#444;--faint:#666;
+      --accent:#6b4300;--accent-ink:#fff;--positive:#0f6b47;--warning:#9a3a18;
+      --tier-s:#b3263c;--tier-s-ink:#fff;--tier-a:#8a5200;--tier-a-ink:#fff;
+      --tier-b:#0b5f87;--tier-b-ink:#fff;--tier-c:#555;--tier-c-ink:#fff;
+      --shadow:none;--shadow-sm:none;--nav-bg:#fff;
+      --glass:#fff;--glass-strong:#fff;--glass-border:#ddd;
+      --glass-highlight:rgba(255,255,255,0);--glass-shadow:none;
+      --table-bg:#fff;--table-head:#f3f3f3;
+      --row-alt:#fafafa;--row-hover:#f0f0f0;
+    }
+    html{color-scheme:light;scroll-behavior:auto}
+    body{background:#fff;color:#111;font-size:10.5pt}
+    body::before{display:none!important}
+    .nav-wrap,.theme-toggle,.tools,.quick,.skip-link,.mobile-cards,.bg-logo{display:none!important}
+    .nav-wrap,.sources,.stat-strip,.quick a,.box,.pick,.warn,.theme-toggle,.model-card,input,select{
+      -webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+    #main,#allTable{display:table!important}
+    .table-scroll{overflow:visible;-webkit-mask-image:none!important;mask-image:none!important}
+    .table-scroll table{min-width:0}
+    section{margin:0 0 22pt;padding-top:10pt;border-top:1px solid #ddd}
+    h1{font-size:24pt;margin:0 0 8pt}
+    h2{font-size:15pt}
+    h2::before{color:#555}
+    h3{font-size:11pt;margin:14pt 0 6pt}
+    .desc{font-size:9pt;color:#444}
+    .stat-strip{grid-template-columns:repeat(5,1fr);box-shadow:none;margin-top:12pt}
+    .stat--note{display:none!important}
+    .stat{padding:8pt}
+    thead th{position:static;background:#f3f3f3!important;color:#111;
+      border-bottom:1px solid #bbb;font-size:8pt}
+    table{box-shadow:none;font-size:8.5pt;break-inside:auto}
+    tbody td{padding:5pt 6pt;border-bottom:1px solid #ddd}
+    tbody tr{break-inside:avoid}
+    .box,.pick,.warn,.sources{border:1px solid #ddd;background:#fff!important;
+      box-shadow:none;break-inside:avoid}
+    .pick,.warn{border-left:2px solid #999}
+    a{color:#111;text-decoration:none}
+    .code-block{background:#f7f7f7!important;color:#111!important}
+    .code-block span{color:#333!important}
+    .foot{color:#555}
+  }
+</style>
+</head>
+<body>
+<div class="bg-logo" aria-hidden="true">
+  <svg viewBox="0 0 240 300" focusable="false">
+    <path class="frame" d="M180 60H60V240H180V60ZM240 300H0V0H240V300Z"/>
+    <path class="inner" d="M180 240H60V120H180V240Z"/>
+  </svg>
+</div>
+<a class="skip-link" href="#overview">跳到内容</a>
+<div class="wrap">
+
+<header class="masthead">
+  <div class="topbar">
+    <div class="brand"><b>OPENCODE</b> / GO</div>
+    <button class="theme-toggle" id="themeToggle" type="button" aria-label="切换主题" title="切换主题">
+      <svg class="sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+      <svg class="moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A8.5 8.5 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
+    </button>
+  </div>
+
+  <h1>OpenCode Go 套餐 · <span class="nowrap">模型使用指南</span> <span class="badge">32 个模型</span></h1>
+  <p class="lede">32 个模型的能力、额度、单价与适用场景，一页看完。数据核对至 <span class="nowrap">2026-11-12</span>。</p>
+  <div class="meta-row">
+    <span>更新 2026-11-12</span>
+    <span>32 个模型 / 29 个计费</span>
+    <span>23 个支持图片</span>
+  </div>
+
+  <details class="sources">
+    <summary>数据来源与本次更新</summary>
+    <div class="body">
+      <p>数据来源：本机 <code>opencode api get /api/model</code> 官方元数据（能力 / 单价 / 上下文 / 输出上限 / 阶梯价 / 发布日期），＋ <code>opencode.ai</code> 官方 Go 文档额度表（2026-11-12 抓取），＋ 公开基准（AA Intelligence / AA Agentic Index 2026-10、BenchLM、Vals AI、官方发布博客）。</p>
+      <p>本次变化：<b>新增 Hy4（正式版）、LongCat 2.5 Free、Iceman Contributor Free</b>；<b>Gemini 4 Argon 限时五折</b>（$2/$10，至 2026-11-30）并去掉 Contributor 后缀；<b>DeepSeek V4.1 Flash 额度上调</b>至 43,330 次/5h、$100；<b>Hy4 preview 被 Hy4 全面替代</b>（同价、双倍额度、支持图片）。</p>
+    </div>
+  </details>
+
+  <div class="stat-strip" aria-label="关键数据">
+    <div class="stat"><div class="n">32</div><div class="l">Go 可用模型（29 个计费）</div></div>
+    <div class="stat"><div class="n">23</div><div class="l">支持图片识别</div></div>
+    <div class="stat"><div class="n">7</div><div class="l">支持 PDF 直读</div></div>
+    <div class="stat"><div class="n">7.3–755</div><div class="l">每美元请求数（跨度 103 倍）</div></div>
+    <div class="stat stat--wide"><div class="n">$0–$3</div><div class="l">输入单价区间（$/百万 token）</div></div>
+    <div class="stat stat--note"><div class="n">3</div><div class="l">免费模型（额度不限，限时）</div></div>
+  </div>
+</header>
+
+<div class="nav-wrap">
+  <nav class="nav-inner" aria-label="章节导航">
+    <a href="#quick">30 秒结论</a>
+    <a href="#overview">总表</a>
+    <a href="#power">实力</a>
+    <a href="#value">性价比</a>
+    <a href="#price">价格</a>
+    <a href="#vision">多模态</a>
+    <a href="#guide">指南</a>
+    <a href="#pitfall">避坑</a>
+    <a href="#all">全量</a>
+    <a href="#tier">成本</a>
+  </nav>
+</div>
+
+<section class="quick" id="quick" aria-label="30 秒结论">
+  <a href="#guide">
+    <span class="q-kicker">日常主力</span>
+    <strong>DeepSeek V4.1 Flash / MiMo-V2.6-Flash</strong>
+    <span>433 / 502 次每美元；前者能看图，后者图片、音频、视频全模态。</span>
+    <span class="q-link">看使用指南 →</span>
+  </a>
+  <a href="#guide">
+    <span class="q-kicker">旗舰省额度</span>
+    <strong>GPT 6 Luna / Hy4</strong>
+    <span>能力 S / A 档，282 / 45 次每美元，均支持图片。</span>
+    <span class="q-link">看使用指南 →</span>
+  </a>
+  <a href="#vision">
+    <span class="q-kicker">免费批处理</span>
+    <strong>LongCat 2.5 Free / Iceman</strong>
+    <span>额度不限；前者支持图片，后者纯文本。</span>
+    <span class="q-link">看多模态 →</span>
+  </a>
+</section>
+
+<!-- ============ 总表 ============ -->
+<section id="overview">
+  <h2 data-kicker="01 / 09">总表</h2>
+  <p class="desc">性价比指数 = 能力分 × √(每美元请求数)，用于平衡「模型强度」与「套餐额度消耗速度」。目前最高约 2300（Muse Spark 1.3），免费模型不计入指数。点击表头排序，或使用筛选与排序下拉。</p>
+
+  <div class="tools">
+    <div class="field field--search">
+      <label for="q">搜索模型</label>
+      <input type="search" id="q" placeholder="Kimi / Flash / 图…">
+    </div>
+    <div class="field">
+      <label for="fTier">档位</label>
+      <select id="fTier">
+        <option value="">全部档位</option><option value="S">S 旗舰</option>
+        <option value="A">A 一线</option><option value="B">B 中上</option><option value="C">C 够用</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="fVision">图片</label>
+      <select id="fVision">
+        <option value="">不限</option>
+        <option value="yes">仅支持图片</option>
+        <option value="no">仅纯文本</option>
+      </select>
+    </div>
+    <div class="field field--sort">
+      <label for="fSort">排序</label>
+      <select id="fSort">
+        <option value="value:-1">性价比最高</option>
+        <option value="s:-1">能力分最高</option>
+        <option value="t:-1">档位 S→C</option>
+        <option value="req:-1">请求/5h 最多</option>
+        <option value="rpd:-1">每美元请求最多</option>
+        <option value="q:-1">月额度最高</option>
+        <option value="pin:-1">输入价最高</option>
+        <option value="pout:-1">输出价最高</option>
+        <option value="ctx:-1">上下文最大</option>
+        <option value="n:1">名称 A–Z</option>
+      </select>
+    </div>
+    <span class="tag" id="count" aria-live="polite"></span>
+  </div>
+
+  <div class="legend">
+    <span><span class="tier tS">S</span> <b>旗舰</b> 攻坚专用</span>
+    <span><span class="tier tA">A</span> <b>一线</b> 高价值任务</span>
+    <span><span class="tier tB">B</span> <b>中上</b> 日常主力</span>
+    <span><span class="tier tC">C</span> <b>够用</b> 简单批量</span>
+    <span>额度列 = <b>Go 档</b>（预估请求数/5小时 · 月额度）</span>
+  </div>
+
+  <table id="main">
+    <caption class="sr-only">模型综合对比表，可按表头排序</caption>
+    <thead><tr>
+      <th data-k="n">模型</th>
+      <th data-k="t" class="num">档位</th>
+      <th data-k="s" class="num">能力分</th>
+      <th data-k="req" class="num">Go 请求/5h</th>
+      <th data-k="q" class="num">月额度</th>
+      <th data-k="rpd" class="num">每美元请求</th>
+      <th data-k="value" class="num">性价比指数</th>
+      <th data-k="pin" class="num">输入$</th>
+      <th data-k="pout" class="num">输出$</th>
+      <th>输入模态</th>
+      <th data-k="ctx" class="num">上下文</th>
+    </tr></thead>
+    <tbody></tbody>
+  </table>
+  <div id="mainCards" class="mobile-cards" aria-label="模型综合对比（移动端卡片）"></div>
+</section>
+
+<!-- ============ 实力 ============ -->
+<section id="power">
+  <h2 data-kicker="02 / 09">实力排行</h2>
+  <p class="desc">按公开基准综合估值分档。S/A 档之间差距很小，B/C 档明显落后一档。Kimi K3.1 Pro、Gemini 4 Argon、Muse Spark 1.3、MiniMax M3.1 Flash 等新型号参考 AA Intelligence / AA Agentic 2026-10 数据；Hy4、LongCat 2.5 Free、Iceman Contributor Free 尚无公开跑分，分数为同档位 / 同系列预估。</p>
+
+  <div class="grid2">
+    <div class="box" style="border-color:rgba(255,92,122,.4)">
+      <h4>S 旗舰 —— 留给最难的活</h4>
+      <ul>
+        <li><b>Kimi K3.1 Pro</b> — AA 智能 <b>55.1（全球 #3）</b>，Terminal-Bench 65.7、DeepSWE 75.5、GPQA 94.2；比 K3 更强还更便宜（$2/$10）</li>
+        <li><b>Kimi K3</b> — 上一代天花板，AA Agentic 50.6</li>
+        <li><b>GLM-5.3</b> — AA Agentic 53.4，Toolathlon 73.0</li>
+        <li><b>Grok 4.7</b> — AA Agentic 58.3（#5），支持 PDF，额度极紧</li>
+        <li><b>Qwen3.8 Max</b> — AA Agentic 48.5，中国榜前列</li>
+        <li><b>Gemini 4 Argon</b> — AA 智能 52.6（#6），全模态（PDF+音频），<b>限时五折 $2/$10</b>，11/30 后恢复 $4/$20</li>
+        <li><b>GPT 6 Luna</b> — GPT-6 系轻量变体，旗舰里最省额度</li>
+      </ul>
+    </div>
+    <div class="box" style="border-color:rgba(255,179,71,.4)">
+      <h4>A 一线 —— 高价值任务</h4>
+      <ul>
+        <li><b>Muse Spark 1.3</b> — AA Agentic <b>55.7（#10）</b>，额度极大，<b>仅限部分地区</b></li>
+        <li><b>MiMo-V2.6-Pro</b> — AA Agentic 56.4（#7），最强开源之一</li>
+        <li><b>GLM-5.3-Flash</b> — AA Agentic 56.2（#8），工具调用异常强</li>
+        <li><b>DeepSeek V4 Pro</b> — Toolathlon 74.1，编码类开源前列，<b>需 Global 区域</b></li>
+        <li><b>Hy4</b> — Hy4 preview 正式版：同价但额度翻倍（2,710 次/5h）、支持图片，输出 65k <span class="flag-new">新</span></li>
+        <li><b>Hy4 preview</b> — 已被 Hy4 全面替代（同价、半额度、纯文本、输出仅 64k）</li>
+        <li><b>Muse Spark 1.2</b> — AA Agentic 44.0，同样仅限部分地区</li>
+        <li><b>DeepSeek V4.1 Flash</b> — AA Agentic 50.8，Flash 线最强；额度已升至 43,330 次/5h</li>
+        <li><b>GPT 5.6 Luna</b> — AA Agentic 42.7，实测编码榜 #12</li>
+        <li><b>Claude Haiku 5.5</b> — AA Agentic 52.0，最便宜的 PDF+图片方案</li>
+        <li><b>MiniMax M3.1 Flash</b> — AA 智能 42.7，输出上限 512k</li>
+        <li><b>Kimi K2.7 Code</b> — 代码专精（代码可到 A，综合约 A-/B+）</li>
+        <li><b>GLM-5.2</b> — 稳但已非最新（AA Agentic 39.4）</li>
+      </ul>
+    </div>
+    <div class="box" style="border-color:rgba(92,200,255,.4)">
+      <h4>B 中上 —— 日常主力</h4>
+      <ul>
+        <li><b>LongCat 2.5 Free</b> — 限时免费不限量，<b>支持图片</b>、1M 上下文、输出 262k（需 Global 区域）<span class="flag-new">新</span></li>
+        <li><b>Iceman Contributor Free</b> — 限时免费不限量，纯文本、256k 上下文 <span class="flag-new">新</span></li>
+        <li><b>Qwen3.8 Flash</b> — 性价比型中端</li>
+        <li><b>MiMo-V2.6-Flash</b> — DeepSWE 65.68，长任务会撞 131,072 输出上限</li>
+        <li><b>Step 5 Preview</b> — AA 智能 43.7，但已转付费且输出上限 64k</li>
+        <li><b>MiniMax M3</b> — AA Agentic 30.8</li>
+        <li><b>Hy3</b> — AA Agentic 25.6</li>
+        <li><b>MiMo V2.5 Pro</b> — 已被 V2.6-Pro 全面替代</li>
+      </ul>
+    </div>
+    <div class="box" style="border-color:rgba(125,133,150,.4)">
+      <h4>C 够用 —— 两头不占</h4>
+      <ul>
+        <li><b>Qwen3.7 Plus</b> — AA Agentic 19.7</li>
+        <li><b>LongCat-2.0</b> — 量大但能力一般</li>
+        <li><b>MiMo V2.5</b> — 便宜但已旧</li>
+        <li><b>Beam Free</b> — 限时免费、额度不限，但纯文本、仅部分区域</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 性价比 ============ -->
+<section id="value">
+  <h2 data-kicker="03 / 09">性价比排行</h2>
+  <p class="desc">口径：先算「每美元请求数」= Go 档请求数 ÷ 月额度（套餐里最直接的成本指标），再乘能力分并开方，避免纯刷量的弱模型霸榜。Muse Spark 1.3 / 1.2 因额度极大（45,300 次 / $60）占据前二，但<b>仅限部分地区</b>；Beam Free / LongCat 2.5 Free / Iceman Contributor Free 免费不计入指数。Gemini 4 Argon 五折期间性价比翻倍，但 11/30 后回落。</p>
+  <table id="tValue">
+    <thead><tr>
+      <th class="num">排名</th><th>模型</th><th class="num">Go 请求 · 月额度</th>
+      <th class="num">每美元请求</th><th class="num">性价比指数</th><th>点评</th>
+    </tr></thead>
+    <tbody></tbody>
+  </table>
+</section>
+
+<!-- ============ 价格 ============ -->
+<section id="price">
+  <h2 data-kicker="04 / 09">价格排行</h2>
+  <p class="desc">上表按官方 token 单价（$/百万 token，输入价升序）；下表按套餐额度的隐含单次请求成本——这是你在 Go 套餐里真正「花掉」的东西。</p>
+
+  <table id="tPrice">
+    <thead><tr>
+      <th class="num">#</th><th>模型</th><th class="num">输入 $/M</th><th class="num">输出 $/M</th>
+      <th class="num">缓存读 $/M</th><th class="num">价格条</th><th class="num">发布</th><th>档位</th>
+    </tr></thead>
+    <tbody></tbody>
+  </table>
+
+  <h3>套餐额度隐含单价（越低越省）</h3>
+  <p class="desc">计算式：月额度 ÷（每5小时请求数 × 144 个5小时窗口）。反映「用满套餐时每次请求的实际成本」。</p>
+  <table id="tQuota">
+    <thead><tr>
+      <th class="num">排名</th><th>模型</th><th class="num">隐含单次成本</th>
+      <th class="num">相对最便宜</th><th class="num">Go 请求/5h</th><th>档位</th>
+    </tr></thead>
+    <tbody></tbody>
+  </table>
+</section>
+
+<!-- ============ 多模态 ============ -->
+<section id="vision">
+  <h2 data-kicker="05 / 09">多模态支持</h2>
+  <p class="desc">数据来自官方 <code>capabilities.input</code> 字段，非人工推断。32 个模型中 <b>23 个支持图片</b>，9 个纯文本。另有 <b>7 个 PDF、6 个音频、16 个视频</b>。</p>
+
+  <table id="tVision">
+    <thead><tr>
+      <th>模型</th><th class="num">档位</th><th>图片</th><th>PDF</th><th>视频</th><th>音频</th>
+      <th class="num">Go 请求/5h</th><th>推荐用途</th>
+    </tr></thead>
+    <tbody></tbody>
+  </table>
+
+  <h3>❌ 不支持图片的 9 个（贴截图会失败）</h3>
+  <div class="box">
+    <p style="margin:0;font-size:13px">
+      <b>GLM-5.3</b> ｜ <b>GLM-5.2</b> ｜ <b>DeepSeek V4 Pro</b> ｜
+      <b>Hy3</b> ｜ <b>Hy4 preview</b> ｜ <b>LongCat-2.0</b> ｜ <b>MiMo V2.5 Pro</b> ｜
+      <b>Beam Free</b> ｜ <b>Iceman Contributor Free</b>
+    </p>
+  </div>
+
+  <h3>🎁 套餐附带的免费模型（API 标价 0，共 3 个）</h3>
+  <table>
+    <thead><tr><th>模型</th><th>输入模态</th><th class="num">输入 $/M</th><th class="num">输出 $/M</th><th class="num">上下文</th><th class="num">输出上限</th><th>备注</th></tr></thead>
+    <tbody>
+      <tr><td>Beam Free</td><td><span class="mod m-text">纯文本</span></td><td class="num">0</td><td class="num">0</td><td class="num">1,048,576</td><td class="num">131,072</td><td class="tag">限时免费 · 额度不限 · 仅限部分地区</td></tr>
+      <tr><td>Iceman Contributor Free <span class="flag-new">新</span></td><td><span class="mod m-text">纯文本</span></td><td class="num">0</td><td class="num">0</td><td class="num">262,144</td><td class="num">131,072</td><td class="tag">限时免费 · 额度不限</td></tr>
+      <tr><td>LongCat 2.5 Free <span class="flag-new">新</span></td><td><span class="mod m-vision">图片</span></td><td class="num">0</td><td class="num">0</td><td class="num">1,000,000</td><td class="num">262,144</td><td class="tag">限时免费 · 额度不限 · 支持图片 · 需 Global 区域</td></tr>
+    </tbody>
+  </table>
+
+  <h3>🔄 2026-11-12 更新：本次全量复核结果</h3>
+  <div class="box">
+    <ul>
+      <li><b>Hy4（新，2026-11-04）</b>：Hy4 preview 的正式版。同价 $0.834/$2.501，但额度从 1,350 次/5h、$30 提升到 <b>2,710 次/5h、$60</b>，并新增<b>图片输入</b>；上下文 1,048,576、输出 65,536。</li>
+      <li><b>LongCat 2.5 Free（新，2026-11-02）</b>：限时免费、额度不限，<b>支持图片</b>，1M 上下文、<b>输出上限 262,144</b>；需在 Settings › Privacy 把 Regions 设为 <b>Global</b>。此前官网单列、本地 API 未下发的模型现已可调用。</li>
+      <li><b>Iceman Contributor Free（新，2026-10-24）</b>：限时免费、额度不限的匿名 Contributor 模型，纯文本、262,144 上下文、131,072 输出；无区域限制，适合零成本跑纯文本批处理。</li>
+      <li><b>Gemini 4 Argon</b>：去掉 Contributor 后缀，并<b>限时五折</b>——输入/输出由 $4/$20 降至 <b>$2/$10</b>，缓存读 $0.1；<b>折扣到 2026-11-30 结束</b>，之后恢复原价。月额度仍为 $30、440 次/5h。</li>
+      <li><b>DeepSeek V4.1 Flash 额度上调</b>：43,330 次/5h、<b>$100</b> 月额度（原 34,670 / $80），每美元请求仍约 433 次；API 名称显示为 <code>DeepSeek V4.1 Flash 1017</code>。</li>
+      <li><b>免费模型增至 3 个</b>：Beam Free、Iceman Contributor Free、LongCat 2.5 Free，全部限时、额度不限；其中 LongCat 2.5 Free 是唯一支持图片的免费模型。</li>
+      <li><b>Hy4 preview 降为备选</b>：与 Hy4 同价，但额度只有一半（$30）、纯文本、输出上限 64,000，已无优先使用价值。</li>
+      <li><b>计数更新</b>：模型 29 → <b>32</b>；图片 21 → <b>23</b>；PDF 8 → <b>7</b>（GLM-5.3-Flash 实际为图片+视频，不含 PDF）；视频 16、音频 6 不变；纯文本 8 → <b>9</b>。</li>
+      <li><b>区域限制补充</b>：除 Muse Spark 1.2 / 1.3 外，<b>DeepSeek V4.1 Flash / V4 Pro 与 LongCat 2.5 Free 也需要把 Regions 设为 Global</b>；Beam Free 在二十余个国家/地区不可用。</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ 指南 ============ -->
+<section id="guide">
+  <h2 data-kicker="06 / 09">使用指南</h2>
+
+  <div class="pick">
+    <h4>🏆 日常 80% 的活 —— 便宜量大，坏了不心疼</h4>
+    <ul>
+      <li><b>DeepSeek V4.1 Flash</b>：433 次/美元，能力仍属 A 线，<b>能看图</b>，通用主力首选（注意峰时涨价，且需 Global 区域）</li>
+      <li><b>MiMo-V2.6-Flash</b>：502 次/美元（非地区限制模型里最高），<b>图片/音频/视频全模态</b>，输出上限 131k</li>
+      <li><b>MiniMax M3.1 Flash</b>：194 次/美元，<b>输出上限 512k</b>，$20 月额度，长输出任务最划算</li>
+      <li><b>Claude Haiku 5.5</b>：257 次/美元，能读图片和 PDF，短请求极便宜</li>
+      <li><b>LongCat 2.5 Free</b>：<b>免费不限量还能看图</b>，1M 上下文、输出 262k —— 零成本视觉批处理首选（限时 + Global 区域）</li>
+      <li><b>Iceman Contributor Free</b>：免费不限量纯文本，262k 上下文，日常跑量完全不心疼（限时）</li>
+    </ul>
+  </div>
+
+  <div class="pick">
+    <h4>🎯 需要旗舰但想省额度 —— 最佳平衡点</h4>
+    <ul>
+      <li><b>GPT 6 Luna</b>：能力 S 档、282 次/美元，能看图能读 PDF，旗舰里的性价比王</li>
+      <li><b>Hy4</b>：$60 拿 2,710 次，能看图，Hy4 preview 的双倍额度替代品</li>
+      <li><b>Kimi K3.1 Pro</b>：当前最强（AA 55.1），$2/$10 比 K3 更便宜，但只有 147 次/5h，按次算很贵</li>
+      <li><b>MiMo-V2.6-Pro</b>：$15 拿 3,250 次，AA Agentic #7，全模态</li>
+      <li><b>GLM-5.3-Flash</b>：AA Agentic #8，工具调用强还比 GLM-5.3 更省</li>
+    </ul>
+  </div>
+
+  <div class="pick">
+    <h4>🔥 攻坚（重构 / 疑难 bug / 架构设计）—— 值得花额度</h4>
+    <ul>
+      <li><b>Kimi K3.1 Pro</b>、<b>Kimi K3</b>、<b>GLM-5.3</b>、<b>Qwen3.8 Max</b>：能力天花板</li>
+      <li><b>DeepSeek V4 Pro</b>：70 次/美元，攻坚档里相对最省（需 Global 区域）</li>
+      <li>⚠️ <b>Kimi K3</b>（7.3 次/美元）仍是全场每美元请求最低；<b>Gemini 4 Argon</b> 五折期间 14.7 次/美元，<b>都别拿来跑批量</b></li>
+    </ul>
+  </div>
+
+  <div class="pick">
+    <h4>💻 纯写代码的高频循环</h4>
+    <ul>
+      <li><b>Kimi K2.7 Code</b>：代码专精，22.5 次/美元，只在写代码时才值回票价</li>
+      <li><b>DeepSeek V4.1 Flash</b> / <b>GLM-5.3-Flash</b>：便宜且工具调用稳</li>
+      <li><b>MiniMax M3.1 Flash</b>：一次能吐 512k，适合大文件重构</li>
+      <li><b>GPT 5.6 Luna</b>：137 次/美元，实测编码 #12，成本极低</li>
+      <li><b>Iceman Contributor Free</b>：免费不限量，适合高频小改动（限时）</li>
+    </ul>
+  </div>
+
+  <div class="grid2" style="margin-top:14px">
+    <div class="box">
+      <h4>📸 看图 / 截图调试</h4>
+      <ul>
+        <li>主力：<b>MiMo-V2.6-Flash</b>（全模态 + 30,100 次/5h）</li>
+        <li>零成本：<b>LongCat 2.5 Free</b>（免费不限量 + 1M 上下文）</li>
+        <li>攻坚：<b>Kimi K3.1 Pro</b> / <b>GPT 6 Luna</b> / <b>Gemini 4 Argon</b> / <b>Qwen3.8 Max</b></li>
+        <li>读设计稿批量比对：<b>Grok 4.7</b>、<b>Qwen3.8 Flash</b>、<b>Muse Spark 1.3</b></li>
+      </ul>
+    </div>
+    <div class="box">
+      <h4>📄 直接拖 PDF 文档</h4>
+      <ul>
+        <li>支持 PDF 的 7 个：<b>Gemini 4 Argon</b>、<b>Claude Haiku 5.5</b>、<b>GPT-6 Luna</b>、<b>GPT-5.6 Luna</b>、<b>Grok 4.7</b>、<b>Muse Spark 1.2</b>、<b>Muse Spark 1.3</b></li>
+        <li>其他模型请先把 PDF 转成文本 / markdown 再喂（GLM-5.3-Flash 只支持图片/视频，不能直读 PDF）</li>
+        <li>⚠️ <b>Claude Haiku 5.5 超过 10 万 token 立刻涨到 5 倍</b> —— 长 PDF 别选它</li>
+      </ul>
+    </div>
+    <div class="box">
+      <h4>🎬 视频 / 音频理解</h4>
+      <ul>
+        <li>视频（16 个）：<b>Kimi K3.1 Pro / K3 / K2.7 Code</b>、<b>Gemini 4 Argon</b>、<b>MiMo 全系</b>、<b>MiniMax M3.1 Flash / M3</b>、<b>Qwen 系</b>、<b>GLM-5.3-Flash</b>、<b>Muse Spark 1.2 / 1.3</b>、<b>Step 5 Preview</b></li>
+        <li>音频（6 个）：<b>Gemini 4 Argon</b>、<b>MiMo 全系</b>、<b>Muse Spark 1.2 / 1.3</b></li>
+        <li>要「图片 + 音频 + 视频 + PDF」全套，只有 <b>Gemini 4 Argon</b> 和 <b>Muse Spark 1.2 / 1.3</b></li>
+        <li>LongCat 2.5 Free 支持图片但不支持音视频</li>
+      </ul>
+    </div>
+    <div class="box">
+      <h4>🤖 多步 Agent / 工具调用</h4>
+      <ul>
+        <li>首选：<b>GLM-5.3-Flash</b>（AA Agentic 56.2 #8）</li>
+        <li>其次：<b>Muse Spark 1.3</b>（55.7 #10）、<b>MiMo-V2.6-Pro</b>（56.4 #7）</li>
+        <li>省额度替代：<b>GPT 6 Luna</b>、<b>Hy4</b>、<b>DeepSeek V4.1 Flash</b>、<b>Claude Haiku 5.5</b></li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>建议的 Agent 分工配置</h3>
+  <div class="box">
+    <p class="desc" style="margin-bottom:10px">在 <code>~/.config/opencode/opencode.jsonc</code> 中按任务分配模型，避免高额度模型被琐事消耗：</p>
+<pre class="code-block" tabindex="0" aria-label="Agent 配置示例" style="margin:0;padding:14px 16px;border-radius:8px;overflow-x:auto;font-size:12.5px;line-height:1.7"><span style="color:#7d8596">// 日常主力用便宜量大的，攻坚时手动切</span>
+{
+  <span style="color:#5cc8ff">"$schema"</span>: <span style="color:#3ddc97">"https://opencode.ai/config.json"</span>,
+  <span style="color:#5cc8ff">"model"</span>: <span style="color:#3ddc97">"opencode-go/deepseek-v4.1-flash"</span>,
+  <span style="color:#5cc8ff">"agents"</span>: {
+    <span style="color:#5cc8ff">"build"</span>:  { <span style="color:#5cc8ff">"model"</span>: <span style="color:#3ddc97">"opencode-go/deepseek-v4.1-flash"</span> },  <span style="color:#7d8596">// 写代码</span>
+    <span style="color:#5cc8ff">"plan"</span>:   { <span style="color:#5cc8ff">"model"</span>: <span style="color:#3ddc97">"opencode-go/gpt-6-luna"</span> },          <span style="color:#7d8596">// 规划</span>
+    <span style="color:#5cc8ff">"review"</span>: { <span style="color:#5cc8ff">"model"</span>: <span style="color:#3ddc97">"opencode-go/kimi-k3.1-pro"</span> }       <span style="color:#7d8596">// 审查攻坚</span>
+  },
+  <span style="color:#5cc8ff">"permissions"</span>: [
+    { <span style="color:#5cc8ff">"action"</span>: <span style="color:#3ddc97">"edit"</span>, <span style="color:#5cc8ff">"resource"</span>: <span style="color:#3ddc97">"*"</span>, <span style="color:#5cc8ff">"effect"</span>: <span style="color:#3ddc97">"ask"</span> },
+    { <span style="color:#5cc8ff">"action"</span>: <span style="color:#3ddc97">"bash"</span>, <span style="color:#5cc8ff">"resource"</span>: <span style="color:#3ddc97">"*"</span>, <span style="color:#5cc8ff">"effect"</span>: <span style="color:#3ddc97">"ask"</span> }
+  ]
+}</pre>
+  </div>
+</section>
+
+<!-- ============ 避坑 ============ -->
+<section id="pitfall">
+  <h2 data-kicker="07 / 09">避坑清单</h2>
+
+  <div class="warn">
+    <h4>⚠️ 15 个最容易踩的坑</h4>
+    <ul style="margin:0;padding-left:20px;font-size:13.5px;line-height:1.9">
+      <li><b>DeepSeek 有峰谷价</b>：V4.1 Flash 峰时 $0.30/$1.20（平时 $0.15/$0.60），V4 Pro 峰时 $1.32/$3.96 —— 周一至周五 01:00–04:00、06:00–10:00 UTC，批量任务尽量避开</li>
+      <li><b>DeepSeek 需要 Global 区域</b>：V4.1 Flash / V4 Pro 默认只允许 Europe &amp; US，必须在 Settings › Privacy 把 Regions 设为 <b>Global</b> 才能调用</li>
+      <li><b>Claude Haiku 5.5 上下文超 10 万就涨 5 倍</b>（$0.1→$0.5 / $0.5→$2.5）—— 长 PDF 会翻车，改用 GPT-6 Luna</li>
+      <li><b>Gemini 4 Argon 五折只到 11/30</b>（现 $2/$10，之后恢复 $4/$20），且输出上限只有 65,536；别按五折价做长期预算</li>
+      <li><b>Hy4 preview 输出上限只有 64,000，全场最低</b>，却标着 1,024,000 上下文 —— 同价已有 Hy4，没有理由再用 preview</li>
+      <li><b>Grok 4.7 上下文超 20 万涨 2 倍</b>（$2→$4 / $6→$12），且额度极紧（169 次/5h）</li>
+      <li><b>GLM-5.3 不支持图片，GLM-5.3-Flash 反而支持</b> —— 想看图别切到 GLM-5.3 主力版；两者都不支持 PDF</li>
+      <li><b>DeepSeek V4 Pro（攻坚模型）是纯文本</b> —— 想贴截图得换 Kimi K3.1 Pro、Hy4、GPT 6 Luna 或 Gemini 4 Argon</li>
+      <li><b>能吃 PDF 的共 7 个</b>：Gemini 4 Argon、Claude Haiku 5.5、GPT-6 Luna、GPT-5.6 Luna、Grok 4.7、Muse Spark 1.2 / 1.3（GLM-5.3-Flash 不在列）</li>
+      <li><b>音频理解只有 6 个</b>：Gemini 4 Argon、MiMo 全系（V2.5 / V2.6-Pro / V2.6-Flash）、Muse Spark 1.2 / 1.3</li>
+      <li><b>Muse Spark 1.3 / 1.2 仅限部分地区</b>，且属于「允许用于训练的付费端点」，需在 Settings › Privacy 里开启对应区域才能调用</li>
+      <li><b>LongCat 2.5 Free 需 Global 区域</b>：免费且支持图片，但不开 Global 就调不到；它和 Iceman、Beam 都是<b>限时</b>免费，随时可能下线</li>
+      <li><b>Beam Free 是纯文本且限地区</b> —— 额度不限，但在二十余个国家/地区不可用，别把长期流程绑在它上面</li>
+      <li><b>Kimi K3 每美元仅 7.3 次</b>（Muse Spark 的 1/103），Gemini 4 Argon 五折期间也只有 14.7 次 —— 别拿它们跑批量</li>
+      <li><b>GLM-5.2 与 GLM-5.3 每美元请求都是 14.7 次</b>，但能力低一档（AA Agentic 39.4 vs 53.4）—— 直接用 5.3</li>
+    </ul>
+  </div>
+
+  <div class="warn">
+    <h4>🚫 尽量避开（两头不占：要么贵要么旧）</h4>
+    <p style="margin:0;font-size:13.5px">
+      <b>GLM-5.2</b>（能力被 5.3 碾压、额度一样）｜
+      <b>Hy4 preview</b>（同价被 Hy4 全面替代，输出仅 64k）｜
+      <b>Qwen3.7 Plus</b>（AA Agentic 19.7，71.7 次/美元，输出上限仅 64k）｜
+      <b>LongCat-2.0</b>（量大但能力一般，已有免费的 2.5）｜
+      <b>MiMo V2.5 Pro</b>（同价有 V2.6-Pro）｜
+      <b>Step 5 Preview</b>（已转付费，输出上限仅 64k）｜
+      <b>MiMo V2.5</b>（同价有 V2.6-Flash）
+    </p>
+  </div>
+
+  <div class="pick">
+    <h4>✅ 一句话记住</h4>
+    <p style="margin:0;font-size:14.5px;line-height:1.8">
+      日常跑 <b>DeepSeek V4.1 Flash</b> 或 <b>MiMo-V2.6-Flash</b>；大输出任务用 <b>MiniMax M3.1 Flash</b>；<br>
+      要旗舰省额度用 <b>GPT 6 Luna</b> 或 <b>Hy4</b>，要最强能力用 <b>Kimi K3.1 Pro</b>；<br>
+      攻坚才掏 <b>Kimi K3.1 Pro / Kimi K3 / GLM-5.3</b>，且只用在刀刃上；<br>
+      看图优先 <b>MiMo 系 / Kimi K3.1 Pro</b>，零成本看图用 <b>LongCat 2.5 Free</b>；<br>
+      读 PDF 找 <b>Gemini 4 Argon / GPT-6 Luna / Muse Spark</b>（GLM 系不支持 PDF）；<br>
+      长文档避开所有<b>阶梯价模型</b>与 <b>DeepSeek 峰时</b>，长输出避开 <b>Hy4 preview / Step 5</b>；<br>
+      零成本批处理用 <b>LongCat 2.5 Free（图片）/ Iceman（纯文本）/ Beam（纯文本）</b>，都是限时。
+    </p>
+  </div>
+</section>
+
+<!-- ============ 完整清单 ============ -->
+<section id="all">
+  <h2 data-kicker="08 / 09">完整清单</h2>
+  <p class="desc">数据来自 <code>opencode api get /api/model</code>（2026-11-12 全量复核）。「输出上限」为 <code>limit.output</code>，单次响应最多能吐多少 token。按发布日期降序排列。3 个免费模型（Beam Free / Iceman Contributor Free / LongCat 2.5 Free）均为限时提供。</p>
+  <table id="allTable">
+    <caption class="sr-only">OpenCode Go 全部模型清单</caption>
+    <thead><tr>
+      <th>模型</th><th>发布</th><th>输入模态</th><th class="num">上下文</th><th class="num">输出上限</th>
+      <th class="num">输入 $/M</th><th class="num">输出 $/M</th><th>状态</th>
+    </tr></thead>
+    <tbody>
+      <tr><td><b>Hy4</b><span class="flag-new">新</span></td><td class="tag">2026-11-04</td><td><span class="mod m-vision">图片</span></td><td class="num">1,048,576</td><td class="num">65,536</td><td class="num">0.834</td><td class="num">2.501</td><td class="tag">已评估</td></tr>
+      <tr><td><b>LongCat 2.5 Free</b><span class="flag-new">新</span></td><td class="tag">2026-11-02</td><td><span class="mod m-vision">图片</span></td><td class="num">1,000,000</td><td class="num">262,144</td><td class="num">0</td><td class="num">0</td><td class="tag">免费 · 不限量</td></tr>
+      <tr><td><b>Iceman Contributor Free</b><span class="flag-new">新</span></td><td class="tag">2026-10-24</td><td><span class="mod m-text">纯文本</span></td><td class="num">262,144</td><td class="num">131,072</td><td class="num">0</td><td class="num">0</td><td class="tag">免费 · 不限量</td></tr>
+      <tr><td><b>Kimi K3.1 Pro</b></td><td class="tag">2026-10-23</td><td><span class="mod m-vision">图片</span><span class="mod m-video">视频</span></td><td class="num">1,048,576</td><td class="num">131,072</td><td class="num">2</td><td class="num">10</td><td class="tag">已评估</td></tr>
+      <tr><td><b>MiniMax M3.1 Flash</b></td><td class="tag">2026-10-19</td><td><span class="mod m-vision">图片</span><span class="mod m-video">视频</span></td><td class="num">1,000,000</td><td class="num">512,000</td><td class="num">0.15</td><td class="num">0.6</td><td class="tag">已评估</td></tr>
+      <tr><td><b>Gemini 4 Argon</b></td><td class="tag">2026-10-13</td><td><span class="mod m-vision">图片</span><span class="mod m-pdf">PDF</span><span class="mod m-video">视频</span><span class="mod m-audio">音频</span></td><td class="num">1,048,576</td><td class="num">65,536</td><td class="num">2</td><td class="num">10</td><td class="tag">半价至 11/30</td></tr>
+      <tr><td><b>Claude Haiku 5.5</b></td><td class="tag">2026-10-07</td><td><span class="mod m-vision">图片</span><span class="mod m-pdf">PDF</span></td><td class="num">1,000,000</td><td class="num">128,000</td><td class="num">0.1</td><td class="num">0.5</td><td class="tag">已评估</td></tr>
+      <tr><td><b>Beam Free</b></td><td class="tag">2026-10-05</td><td><span class="mod m-text">纯文本</span></td><td class="num">1,048,576</td><td class="num">131,072</td><td class="num">0</td><td class="num">0</td><td class="tag">免费 · 不限量</td></tr>
+      <tr><td><b>MiMo-V2.6-Pro</b></td><td class="tag">2026-09-22</td><td><span class="mod m-vision">图片</span><span class="mod m-audio">音频</span><span class="mod m-video">视频</span></td><td class="num">1,048,576</td><td class="num">131,072</td><td class="num">0.435</td><td class="num">0.87</td><td class="tag">已评估</td></tr>
+      <tr><td><b>MiMo-V2.6-Flash</b></td><td class="tag">2026-09-22</td><td><span class="mod m-vision">图片</span><span class="mod m-audio">音频</span><span class="mod m-video">视频</span></td><td class="num">1,048,576</td><td class="num">131,072</td><td class="num">0.14</td><td class="num">0.28</td><td class="tag">已评估</td></tr>
+      <tr><td><b>GPT-6 Luna</b></td><td class="tag">2026-09-22</td><td><span class="mod m-vision">图片</span><span class="mod m-pdf">PDF</span></td><td class="num">1,050,000</td><td class="num">128,000</td><td class="num">0.1</td><td class="num">0.5</td><td class="tag">已评估</td></tr>
+      <tr><td><b>Grok 4.7</b></td><td class="tag">2026-09-21</td><td><span class="mod m-vision">图片</span><span class="mod m-pdf">PDF</span></td><td class="num">500,000</td><td class="num">500,000</td><td class="num">2</td><td class="num">6</td><td class="tag">已评估</td></tr>
+      <tr><td><b>Step 5 Preview</b></td><td class="tag">2026-09-16</td><td><span class="mod m-vision">图片</span><span class="mod m-video">视频</span></td><td class="num">1,000,000</td><td class="num">65,536</td><td class="num">1</td><td class="num">2.7</td><td class="tag">已转付费</td></tr>
+      <tr><td><b>DeepSeek V4.1 Flash</b></td><td class="tag">2026-10-17</td><td><span class="mod m-vision">图片</span></td><td class="num">1,000,000</td><td class="num">384,000</td><td class="num">0.15</td><td class="num">0.6</td><td class="tag">已评估</td></tr>
+      <tr><td><b>Muse Spark 1.3 Contributor</b></td><td class="tag">2026-09-02</td><td><span class="mod m-vision">图片</span><span class="mod m-pdf">PDF</span><span class="mod m-video">视频</span><span class="mod m-audio">音频</span></td><td class="num">1,048,576</td><td class="num">131,072</td><td class="num">0.1</td><td class="num">0.2</td><td class="tag">已评估</td></tr>
+      <tr><td><b>Hy4 preview</b></td><td class="tag">2026-08-28</td><td><span class="mod m-text">纯文本</span></td><td class="num">1,024,000</td><td class="num">64,000</td><td class="num">0.834</td><td class="num">2.501</td><td class="tag">已评估</td></tr>
+      <tr><td><b>GLM-5.3-Flash</b></td><td class="tag">2026-08-26</td><td><span class="mod m-vision">图片</span><span class="mod m-video">视频</span></td><td class="num">1,000,000</td><td class="num">131,072</td><td class="num">0.15</td><td class="num">0.5</td><td class="tag">已评估</td></tr>
+      <tr><td><b>Qwen3.8 Flash</b></td><td class="tag">2026-08-26</td><td><span class="mod m-vision">图片</span><span class="mod m-video">视频</span></td><td class="num">1,000,000</td><td class="num">131,072</td><td class="num">0.15</td><td class="num">0.47</td><td class="tag">已评估</td></tr>
+      <tr><td><b>GLM-5.3</b></td><td class="tag">2026-08-14</td><td><span class="mod m-text">纯文本</span></td><td class="num">1,000,000</td><td class="num">131,072</td><td class="num">1.4</td><td class="num">4.4</td><td class="tag">已评估</td></tr>
+      <tr><td><b>Muse Spark 1.2 Contributor</b></td><td class="tag">2026-08-05</td><td><span class="mod m-vision">图片</span><span class="mod m-pdf">PDF</span><span class="mod m-video">视频</span><span class="mod m-audio">音频</span></td><td class="num">1,048,576</td><td class="num">131,072</td><td class="num">0.1</td><td class="num">0.2</td><td class="tag">已评估</td></tr>
+      <tr><td><b>Qwen3.8 Max</b></td><td class="tag">2026-08-03</td><td><span class="mod m-vision">图片</span><span class="mod m-video">视频</span></td><td class="num">1,000,000</td><td class="num">131,072</td><td class="num">2</td><td class="num">6</td><td class="tag">已评估</td></tr>
+      <tr><td><b>Kimi K3</b></td><td class="tag">2026-07-16</td><td><span class="mod m-vision">图片</span><span class="mod m-video">视频</span></td><td class="num">1,048,576</td><td class="num">131,072</td><td class="num">3</td><td class="num">15</td><td class="tag">已评估</td></tr>
+      <tr><td><b>GPT-5.6 Luna</b></td><td class="tag">2026-07-09</td><td><span class="mod m-vision">图片</span><span class="mod m-pdf">PDF</span></td><td class="num">1,050,000</td><td class="num">128,000</td><td class="num">0.2</td><td class="num">1.2</td><td class="tag">已评估</td></tr>
+      <tr><td><b>Hy3</b></td><td class="tag">2026-07-06</td><td><span class="mod m-text">纯文本</span></td><td class="num">256,000</td><td class="num">128,000</td><td class="num">0.14</td><td class="num">0.58</td><td class="tag">已评估</td></tr>
+      <tr><td><b>LongCat-2.0</b></td><td class="tag">2026-06-30</td><td><span class="mod m-text">纯文本</span></td><td class="num">1,000,000</td><td class="num">131,072</td><td class="num">0.3</td><td class="num">1.2</td><td class="tag">已评估</td></tr>
+      <tr><td><b>GLM-5.2</b></td><td class="tag">2026-06-13</td><td><span class="mod m-text">纯文本</span></td><td class="num">1,000,000</td><td class="num">131,072</td><td class="num">1.4</td><td class="num">4.4</td><td class="tag">已评估</td></tr>
+      <tr><td><b>Kimi K2.7 Code</b></td><td class="tag">2026-06-12</td><td><span class="mod m-vision">图片</span><span class="mod m-video">视频</span></td><td class="num">262,144</td><td class="num">262,144</td><td class="num">0.95</td><td class="num">4</td><td class="tag">已评估</td></tr>
+      <tr><td><b>Qwen3.7 Plus</b></td><td class="tag">2026-06-02</td><td><span class="mod m-vision">图片</span><span class="mod m-video">视频</span></td><td class="num">1,000,000</td><td class="num">65,536</td><td class="num">0.4</td><td class="num">1.6</td><td class="tag">已评估</td></tr>
+      <tr><td><b>MiniMax-M3</b></td><td class="tag">2026-06-01</td><td><span class="mod m-vision">图片</span><span class="mod m-video">视频</span></td><td class="num">1,000,000</td><td class="num">131,072</td><td class="num">0.3</td><td class="num">1.2</td><td class="tag">已评估</td></tr>
+      <tr><td><b>DeepSeek V4 Pro</b></td><td class="tag">2026-04-24</td><td><span class="mod m-text">纯文本</span></td><td class="num">1,000,000</td><td class="num">384,000</td><td class="num">0.66</td><td class="num">1.98</td><td class="tag">已评估</td></tr>
+      <tr><td><b>MiMo V2.5</b></td><td class="tag">2026-04-22</td><td><span class="mod m-vision">图片</span><span class="mod m-audio">音频</span><span class="mod m-video">视频</span></td><td class="num">1,000,000</td><td class="num">128,000</td><td class="num">0.14</td><td class="num">0.28</td><td class="tag">已评估</td></tr>
+      <tr><td><b>MiMo V2.5 Pro</b></td><td class="tag">2026-04-22</td><td><span class="mod m-text">纯文本</span></td><td class="num">1,048,576</td><td class="num">128,000</td><td class="num">0.435</td><td class="num">0.87</td><td class="tag">已评估</td></tr>
+    </tbody>
+  </table>
+  <div id="allCards" class="mobile-cards" aria-label="完整模型清单（移动端卡片）"></div>
+</section>
+
+<!-- ============ 隐藏成本 ============ -->
+<section id="tier">
+  <h2 data-kicker="09 / 09">隐藏成本：阶梯价、峰谷价与输出上限</h2>
+  <p class="desc">阶梯价与输出上限来自官方 <code>cost[].tier</code> 与 <code>limit.output</code> 字段，峰谷价来自 <code>opencode.ai</code> Go 文档价格表 —— <b>价格表里都看不到</b>，但会实打实影响长任务和长文档的成本与成功率。</p>
+
+  <h3>💸 长上下文阶梯价：超出阈值后自动涨价</h3>
+  <p class="desc">6 个模型带阶梯计价。判定基准是<b>单次请求的上下文长度</b>，超过阈值后该请求的全部 token 按高价计。</p>
+  <table>
+    <thead><tr>
+      <th>模型</th><th class="num">触发阈值</th>
+      <th class="num">常规 输入/输出</th><th class="num">超限 输入/输出</th>
+      <th class="num">涨幅</th><th>实务建议</th>
+    </tr></thead>
+    <tbody>
+      <tr><td><b>Claude Haiku 5.5</b></td><td class="num">100,000</td><td class="num">$0.1 / $0.5</td><td class="num"><b>$0.5 / $2.5</b></td><td class="num">5×</td><td class="tag">全场最陡的坑。短问答很便宜，喂长 PDF 会翻 5 倍</td></tr>
+      <tr><td><b>Grok 4.7</b></td><td class="num">200,000</td><td class="num">$2 / $6</td><td class="num">$4 / $12</td><td class="num">2×</td><td class="tag">本身已贵，长会话翻倍后慎用</td></tr>
+      <tr><td><b>Qwen3.7 Plus</b></td><td class="num">256,000</td><td class="num">$0.4 / $1.6</td><td class="num">$1.2 / $4.8</td><td class="num">3×</td><td class="tag">能力本来就一般，长文不值</td></tr>
+      <tr><td><b>GPT-5.6 Luna</b></td><td class="num">272,000</td><td class="num">$0.2 / $1.2</td><td class="num">$0.4 / $1.8</td><td class="num">2× / 1.5×</td><td class="tag">可接受</td></tr>
+      <tr><td><b>GPT-6 Luna</b></td><td class="num">272,000</td><td class="num">$0.1 / $0.5</td><td class="num">$0.2 / $0.75</td><td class="num">2× / 1.5×</td><td class="tag">即使翻倍仍是低价 PDF 方案，最稳</td></tr>
+      <tr><td><b>MiniMax-M3</b></td><td class="num">512,000</td><td class="num">$0.3 / $1.2</td><td class="num">$0.6 / $2.4</td><td class="num">2×</td><td class="tag">阈值很高，基本碰不到</td></tr>
+    </tbody>
+  </table>
+  <div class="box" style="margin-top:12px">
+    <p style="margin:0;font-size:13px">
+      💡 其余 26 个模型（含 3 个免费）<b>没有阶梯价</b>，上下文再长单价也不变 —— 超长文档优先在
+      <b>DeepSeek 系（避开峰时）/ MiMo 全系 / GLM-5.3</b> 里挑；其中 GLM-5.3 与 DeepSeek 系是<b>纯文本</b>（需先转文本），MiMo 系<b>支持图片</b>。
+    </p>
+  </div>
+
+  <h3>🕐 峰谷价：官方 <code>cost[]</code> 里看不到的第二层价格</h3>
+  <p class="desc">DeepSeek 两个模型按 UTC 时段计价，峰时单价是平时的 2 倍。API 元数据只返回平时价，容易误算预算。</p>
+  <table>
+    <thead><tr><th>模型</th><th class="num">平时 输入/输出</th><th class="num">峰时 输入/输出</th><th class="num">涨幅</th><th>峰时窗口（UTC）</th></tr></thead>
+    <tbody>
+      <tr><td><b>DeepSeek V4.1 Flash</b></td><td class="num">$0.15 / $0.60</td><td class="num"><b>$0.30 / $1.20</b></td><td class="num">2×</td><td class="tag">周一至周五 01:00–04:00、06:00–10:00</td></tr>
+      <tr><td><b>DeepSeek V4 Pro</b></td><td class="num">$0.66 / $1.98</td><td class="num"><b>$1.32 / $3.96</b></td><td class="num">2×</td><td class="tag">同上；批量重构尽量排到窗口外</td></tr>
+    </tbody>
+  </table>
+
+  <h3>📏 输出 token 上限：长 agentic 任务的真正瓶颈</h3>
+  <p class="desc">上下文窗口大 ≠ 能一次吐很多。<code>limit.output</code> 决定单次响应最大长度，超出会被截断。</p>
+  <table>
+    <thead><tr><th class="num">输出上限</th><th>模型</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr><td class="num"><b>512,000</b></td><td>MiniMax M3.1 Flash</td><td class="tag">全场最高，适合大文件一次性重构</td></tr>
+      <tr><td class="num">500,000</td><td>Grok 4.7</td><td class="tag">次高，但额度极紧（169 次/5h）</td></tr>
+      <tr><td class="num"><b>384,000</b></td><td>DeepSeek V4.1 Flash / V4 Pro</td><td class="tag">DeepSeek 系很能吐，长任务友好</td></tr>
+      <tr><td class="num">262,144</td><td>Kimi K2.7 Code / LongCat 2.5 Free</td><td class="tag">代码库一次性输出够用；免费模型里最高</td></tr>
+      <tr><td class="num">131,072</td><td>MiMo 全系 / GLM 系 / Kimi K3.1 Pro / Kimi K3 / Qwen3.8 系 / MiniMax-M3 / Muse Spark / LongCat-2.0 / Beam Free / Iceman Contributor Free</td><td class="tag">默认档，绝大多数任务绰绰有余</td></tr>
+      <tr><td class="num">128,000</td><td>GPT-6 Luna / GPT-5.6 Luna / Claude Haiku 5.5 / Hy3 / MiMo V2.5</td><td class="tag">默认档</td></tr>
+      <tr><td class="num">65,536</td><td>Gemini 4 Argon / Step 5 Preview / Qwen3.7 Plus / Hy4</td><td class="tag">偏低，批量生成要分段</td></tr>
+      <tr><td class="num"><b>64,000</b></td><td><b>Hy4 preview</b></td><td class="tag">⚠️ <b>全场最低</b>，却顶着 1,024,000 上下文，极易误判。长任务别选它</td></tr>
+    </tbody>
+  </table>
+
+  <h3>🧩 协议差异（影响 thinking 行为）</h3>
+  <p class="desc">5 个模型走 <code>@opencode/ai/providers/anthropic</code> 协议（Anthropic 式 extended thinking），5 个走 <code>openai</code>，1 个走 <code>google</code>，21 个走 <code>openai-compatible</code>。同一份代码在不同模型上的推理块格式不一致，切模型时若发现 thinking 行为异常，多半是协议差异而非模型能力问题。</p>
+  <div class="box">
+    <p style="margin:0;font-size:13px">
+      <b>anthropic 协议（5）</b>：Claude Haiku 5.5、Qwen3.8 Flash、Qwen3.8 Max、Qwen3.7 Plus、MiniMax-M3<br>
+      <b>google 协议（1）</b>：Gemini 4 Argon<br>
+      <b>openai 协议（5）</b>：GPT-6 Luna、GPT-5.6 Luna、Grok 4.7、Muse Spark 1.3、Muse Spark 1.2
+    </p>
+  </div>
+</section>
+
+<div class="foot">
+  OpenCode Go 套餐模型使用指南 · 更新于 2026-11-12<br>
+  模型清单、模态、上下文、单价、输出上限、阶梯价：2026-11-12 对 <code>opencode api get /api/model</code> 全量 32 个模型逐字段核对<br>
+  套餐请求额度 / 月额度 / 峰谷价 / 区域限制：<code>opencode.ai/v2/docs/console/go</code> 官方文档（2026-11-12 抓取）<br>
+  能力分为公开基准综合估值（AA Intelligence / AA Agentic 2026-10、BenchLM、Vals AI），新模型为同系列预估，仅供参考<br>
+  <a href="#quick">回到 30 秒结论</a>
+</div>
+
+</div>
+
+<script>
+/* ===== 数据 ===== */
+const D=[
+{n:"Hy4",id:"hy4",t:"A",s:80,req:2710,q:60,preq:10840,pq:240,pin:0.834,pout:2.501,pc:0.042,mods:["text","image"],ctx:1048576,rel:"2026-11-04",note:"Hy4 preview 正式版：同价双额度、支持图片",nw:1},
+{n:"LongCat 2.5 Free",id:"longcat-2.5-free",t:"B",s:69,req:0,q:0,preq:0,pq:0,pin:0,pout:0,pc:0,mods:["text","image"],ctx:1000000,rel:"2026-11-02",note:"限时免费 · 额度不限 · 支持图片 · 需 Global 区域",free:1,nw:1},
+{n:"Iceman Contributor Free",id:"iceman-contributor-free",t:"B",s:72,req:0,q:0,preq:0,pq:0,pin:0,pout:0,pc:0,mods:["text"],ctx:262144,rel:"2026-10-24",note:"限时免费 · 额度不限 · 纯文本",free:1,nw:1},
+{n:"Kimi K3.1 Pro",id:"kimi-k3.1-pro",t:"S",s:93,req:147,q:15,preq:588,pq:60,pin:2,pout:10,pc:0.2,mods:["text","image","video"],ctx:1048576,rel:"2026-10-23",note:"AA 智能 55.1 #3，TB 65.7；最强但每美元仅 9.8 次",nw:0},
+{n:"MiniMax M3.1 Flash",id:"minimax-m3.1-flash",t:"A",s:74,req:3880,q:20,preq:15500,pq:80,pin:0.15,pout:0.6,pc:0.015,mods:["text","image","video"],ctx:1000000,rel:"2026-10-19",note:"输出上限 512k 全场最高，AA 智能 42.7"},
+{n:"Gemini 4 Argon",id:"gemini-4-argon",t:"S",s:88,req:440,q:30,preq:1760,pq:120,pin:2,pout:10,pc:0.1,mods:["text","image","pdf","video","audio"],ctx:1048576,rel:"2026-10-13",note:"全模态；限时五折至 11/30，之后恢复 $4/$20"},
+{n:"Claude Haiku 5.5",id:"claude-haiku-5-5",t:"A",s:76,req:3850,q:15,preq:15380,pq:60,pin:0.1,pout:0.5,pc:0.01,mods:["text","image","pdf"],ctx:1000000,rel:"2026-10-07",note:"最便宜 PDF+图片，>100k 涨 5 倍"},
+{n:"Beam Free",id:"beam-free",t:"C",s:56,req:0,q:0,pin:0,pout:0,pc:0,mods:["text"],ctx:1048576,rel:"2026-10-05",note:"限时免费 · 额度不限 · 纯文本 · 仅部分区域",free:1},
+{n:"MiMo-V2.6-Pro",id:"mimo-v2.6-pro",t:"A",s:83,req:3250,q:15,preq:13000,pq:60,pin:0.435,pout:0.87,pc:0.003625,mods:["text","image","audio","video"],ctx:1048576,rel:"2026-09-22",note:"AA Agentic 56.4 #7，全模态"},
+{n:"GPT 6 Luna",id:"gpt-6-luna",t:"S",s:85,req:4230,q:15,preq:16920,pq:60,pin:0.1,pout:0.5,pc:0.01,mods:["text","image","pdf"],ctx:1050000,rel:"2026-09-22",note:"旗舰里最省额度，能看图能读 PDF"},
+{n:"MiMo-V2.6-Flash",id:"mimo-v2.6-flash",t:"B",s:72,req:30100,q:60,preq:60200,pq:120,pin:0.14,pout:0.28,pc:0.0028,mods:["text","image","audio","video"],ctx:1048576,rel:"2026-09-22",note:"量最大，全模态，日常首选主力"},
+{n:"Grok 4.7",id:"grok-4.7",t:"S",s:87,req:169,q:15,preq:676,pq:60,pin:2,pout:6,pc:0.5,mods:["text","image","pdf"],ctx:500000,rel:"2026-09-21",note:"AA Agentic 58.3 #5，支持 PDF，额度极紧"},
+{n:"Step 5 Preview",id:"step-5-preview",t:"B",s:73,req:430,q:15,preq:1720,pq:60,pin:1,pout:2.7,pc:0.1,mods:["text","image","video"],ctx:1000000,rel:"2026-09-16",note:"已转付费，输出上限仅 64k"},
+{n:"DeepSeek V4.1 Flash",id:"deepseek-v4.1-flash",t:"A",s:76,req:43330,q:100,preq:86670,pq:200,pin:0.15,pout:0.6,pc:0.003,mods:["text","image"],ctx:1000000,rel:"2026-10-17",note:"433 次/美元，Flash 线主力；峰时翻倍，需 Global 区域"},
+{n:"Muse Spark 1.3 Contributor",id:"muse-spark-1.3-contributor",t:"A",s:84,req:45300,q:60,preq:90600,pq:120,pin:0.1,pout:0.2,pc:0.002,mods:["text","image","pdf","video","audio"],ctx:1048576,rel:"2026-09-02",note:"AA Agentic 55.7 #10，额度极大；仅限部分地区"},
+{n:"Hy4 preview",id:"hy4-preview",t:"A",s:78,req:1350,q:30,preq:5400,pq:120,pin:0.834,pout:2.501,pc:0.042,mods:["text"],ctx:1024000,rel:"2026-08-28",note:"已被 Hy4 替代：同价半额度、纯文本、输出仅 64k"},
+{n:"Qwen3.8 Flash",id:"qwen3.8-flash",t:"B",s:73,req:5400,q:30,preq:16200,pq:90,pin:0.15,pout:0.47,pc:0.016,mods:["text","image","video"],ctx:1000000,rel:"2026-08-26",note:"性价比型中端"},
+{n:"GLM-5.3-Flash",id:"glm-5.3-flash",t:"A",s:77,req:6320,q:60,preq:18960,pq:180,pin:0.15,pout:0.5,pc:0.03,mods:["text","image","video"],ctx:1000000,rel:"2026-08-26",note:"AA Agentic 56.2 #8，工具调用强"},
+{n:"GLM-5.3",id:"glm-5.3",t:"S",s:87,req:220,q:15,preq:1760,pq:120,pin:1.4,pout:4.4,pc:0.26,mods:["text"],ctx:1000000,rel:"2026-08-14",note:"AA Agentic 53.4，攻坚专用，不支持图片"},
+{n:"Muse Spark 1.2 Contributor",id:"muse-spark-1.2-contributor",t:"A",s:75,req:45300,q:60,preq:90600,pq:120,pin:0.1,pout:0.2,pc:0.002,mods:["text","image","pdf","video","audio"],ctx:1048576,rel:"2026-08-05",note:"AA Agentic 44.0，额度极大；仅限部分地区"},
+{n:"Qwen3.8 Max",id:"qwen3.8-max",t:"S",s:88,req:160,q:15,preq:640,pq:60,pin:2,pout:6,pc:0.25,mods:["text","image","video"],ctx:1000000,rel:"2026-08-03",note:"AA Agentic 48.5，额度极紧"},
+{n:"Kimi K3",id:"kimi-k3",t:"S",s:90,req:110,q:15,preq:440,pq:60,pin:3,pout:15,pc:0.3,mods:["text","image","video"],ctx:1048576,rel:"2026-07-16",note:"上一代天花板，每美元仅 7.3 次"},
+{n:"GPT 5.6 Luna",id:"gpt-5.6-luna",t:"A",s:76,req:2050,q:15,preq:8200,pq:60,pin:0.2,pout:1.2,pc:0.02,mods:["text","image","pdf"],ctx:1050000,rel:"2026-07-09",note:"单价极低，实测编码 #12"},
+{n:"Hy3",id:"hy3",t:"B",s:67,req:4300,q:60,preq:17200,pq:240,pin:0.14,pout:0.58,pc:0.035,mods:["text"],ctx:256000,rel:"2026-07-06",note:"上下文偏小"},
+{n:"LongCat-2.0",id:"longcat-2.0",t:"C",s:62,req:11400,q:60,preq:45600,pq:240,pin:0.3,pout:1.2,pc:0.006,mods:["text"],ctx:1000000,rel:"2026-06-30",note:"量大但能力一般"},
+{n:"GLM-5.2",id:"glm-5.2",t:"A",s:79,req:880,q:60,preq:2640,pq:180,pin:1.4,pout:4.4,pc:0.26,mods:["text"],ctx:1000000,rel:"2026-06-13",note:"同价但能力被 5.3 碾压，直接用 5.3"},
+{n:"Kimi K2.7 Code",id:"kimi-k2.7-code",t:"A",s:75,req:1350,q:60,preq:4050,pq:180,pin:0.95,pout:4,pc:0.19,mods:["text","image","video"],ctx:262144,rel:"2026-06-12",note:"代码专精，综合约 A-/B+"},
+{n:"Qwen3.7 Plus",id:"qwen3.7-plus",t:"C",s:63,req:4300,q:60,preq:12900,pq:180,pin:0.4,pout:1.6,pc:0.04,mods:["text","image","video"],ctx:1000000,rel:"2026-06-02",note:"AA Agentic 19.7，不划算"},
+{n:"MiniMax M3",id:"minimax-m3",t:"B",s:70,req:3200,q:60,preq:9600,pq:180,pin:0.3,pout:1.2,pc:0.06,mods:["text","image","video"],ctx:1000000,rel:"2026-06-01",note:"AA Agentic 30.8"},
+{n:"DeepSeek V4 Pro",id:"deepseek-v4-pro",t:"A",s:82,req:1050,q:15,preq:4200,pq:60,pin:0.66,pout:1.98,pc:0.022,mods:["text"],ctx:1000000,rel:"2026-04-24",note:"攻坚档里相对最省，纯文本；峰时翻倍"},
+{n:"MiMo V2.5",id:"mimo-v2.5",t:"C",s:60,req:30100,q:60,preq:60200,pq:120,pin:0.14,pout:0.28,pc:0.0028,mods:["text","image","audio","video"],ctx:1000000,rel:"2026-04-22",note:"便宜但已旧"},
+{n:"MiMo V2.5 Pro",id:"mimo-v2.5-pro",t:"C",s:67,req:3250,q:15,preq:13000,pq:60,pin:0.435,pout:0.87,pc:0.003625,mods:["text"],ctx:1048576,rel:"2026-04-22",note:"已被 V2.6-Pro 全面替代"}
+];
+
+const MODNAME={image:"图片",pdf:"PDF",video:"视频",audio:"音频",text:"纯文本"};
+const MODCLS={image:"m-vision",pdf:"m-pdf",video:"m-video",audio:"m-audio",text:"m-text"};
+const TIERCLS={S:"tS",A:"tA",B:"tB",C:"tC"};
+const TIERNAME={S:"旗舰",A:"一线",B:"中上",C:"够用"};
+
+/* 派生 */
+D.forEach(d=>{
+  d.free = !!d.free;
+  d.rpd = d.free ? Infinity : d.req/d.q;  // 每美元请求数
+  d.value = d.free ? -1 : Math.round(d.s*Math.sqrt(d.rpd));
+  d.has = m => d.mods.includes(m);
+  d.vision = d.mods.includes("image");
+  d.unit = d.free ? 0 : d.q/(d.req*144);  // 隐含单次请求成本
+});
+
+const fmt=n=>n.toLocaleString('en-US');
+const ctxFmt=n=>n>=1000000?(n/1000000).toFixed(n%1000000?1:0)+"M":fmt(n);
+
+function modsHTML(d){
+  return ["image","pdf","video","audio"].filter(m=>d.mods.includes(m))
+    .map(m=>`<span class="mod ${MODCLS[m]}">${MODNAME[m]}</span>`).join("")
+    || `<span class="mod m-text">纯文本</span>`;
+}
+
+/* ===== 总表 ===== */
+let sortK="value", sortDir=-1;
+const mainBody=document.querySelector("#main tbody");
+const mainCards=document.getElementById("mainCards");
+
+function cardHTML(d){
+  const req=d.free?'不限':fmt(d.req);
+  const quota=d.free?'$0':'$'+d.q;
+  const rpd=d.free?'∞':d.rpd.toFixed(1);
+  const value=d.free?'∞':fmt(d.value);
+  return `<li class="model-card">
+    <div class="mc-top">
+      <span class="tier ${TIERCLS[d.t]}">${d.t}</span>
+      <div class="mc-name">${d.n}${d.nw?'<span class="flag-new">新</span>':''}</div>
+      <span class="mc-score">${d.s}</span>
+    </div>
+    <p class="mc-note">${d.note}</p>
+    <dl class="mc-grid">
+      <div><dt>请求/5h</dt><dd>${req}</dd></div>
+      <div><dt>月额度</dt><dd>${quota}</dd></div>
+      <div><dt>每美元请求</dt><dd>${rpd}</dd></div>
+      <div><dt>性价比指数</dt><dd>${value}</dd></div>
+      <div><dt>输入 $/M</dt><dd>${d.pin}</dd></div>
+      <div><dt>输出 $/M</dt><dd>${d.pout}</dd></div>
+      <div><dt>上下文</dt><dd>${ctxFmt(d.ctx)}</dd></div>
+    </dl>
+    <div class="mc-mods">${modsHTML(d)}</div>
+  </li>`;
+}
+
+function renderMain(){
+  const q=document.getElementById("q").value.trim().toLowerCase();
+  const ft=document.getElementById("fTier").value;
+  const fv=document.getElementById("fVision").value;
+  let list=D.filter(d=>{
+    if(ft&&d.t!==ft) return false;
+    if(fv==="yes"&&!d.vision) return false;
+    if(fv==="no"&&d.vision) return false;
+    if(q&&!(d.n.toLowerCase().includes(q)||d.mods.join(" ").includes(q)||
+        (q.includes("图")&&d.vision))) return false;
+    return true;
+  });
+  list.sort((a,b)=>{
+    let x=a[sortK],y=b[sortK];
+    if(sortK==="t") return sortDir*(({S:4,A:3,B:2,C:1}[x])-({S:4,A:3,B:2,C:1}[y]));
+    if(typeof x==="string") return sortDir*x.localeCompare(y);
+    return sortDir*(x-y);
+  });
+  const max=Math.max(...D.filter(d=>!d.free).map(d=>d.value));
+  mainBody.innerHTML=list.map(d=>`
+    <tr>
+      <td><b>${d.n}</b>${d.nw?'<span class="flag-new">新</span>':''}<div class="tag">${d.note}</div></td>
+      <td class="num"><span class="tier ${TIERCLS[d.t]}">${d.t}</span></td>
+      <td class="num">${d.s}</td>
+      <td class="num">${d.free?'不限':fmt(d.req)}</td>
+      <td class="num">${d.free?'$0':'$'+d.q}</td>
+      <td class="num">${d.free?'∞':d.rpd.toFixed(1)}</td>
+      <td class="num"><div style="display:flex;align-items:center;gap:7px;justify-content:flex-end">
+        <span>${d.free?'∞':fmt(d.value)}</span><span class="bar" style="width:56px"><i style="width:${d.free?100:(d.value/max*100).toFixed(0)}%"></i></span></div></td>
+      <td class="num">${d.pin}</td>
+      <td class="num">${d.pout}</td>
+      <td>${modsHTML(d)}</td>
+      <td class="num">${ctxFmt(d.ctx)}</td>
+    </tr>`).join("");
+  mainCards.innerHTML=`<ul>${list.map(cardHTML).join("")}</ul>`;
+  document.getElementById("count").textContent=`显示 ${list.length} / ${D.length} 个模型`;
+}
+
+/* 表头排序：原生 button，支持键盘与 aria-sort */
+const mainHeads=[...document.querySelectorAll("#main thead th[data-k]")];
+const fSort=document.getElementById("fSort");
+mainHeads.forEach(th=>{
+  const label=th.textContent.trim();
+  const btn=document.createElement("button");
+  btn.type="button";
+  btn.className="sort-btn";
+  btn.innerHTML=`<span>${label}</span><span class="sort-arrow" aria-hidden="true"></span>`;
+  btn.addEventListener("click",()=>{
+    const k=th.dataset.k;
+    sortDir=(k===sortK)?-sortDir:(k==="n"?1:-1);
+    sortK=k;
+    updateSortUI();
+    renderMain();
+  });
+  th.textContent="";
+  th.appendChild(btn);
+  th.classList.add("sortable");
+  th.setAttribute("aria-sort","none");
+  th.setAttribute("scope","col");
+});
+
+function updateSortUI(){
+  mainHeads.forEach(th=>{
+    th.setAttribute("aria-sort",
+      th.dataset.k===sortK ? (sortDir===1?"ascending":"descending") : "none");
+  });
+  if(fSort){
+    const v=sortK+":"+sortDir;
+    fSort.value=[...fSort.options].some(o=>o.value===v)?v:"";
+  }
+}
+
+["q","fTier","fVision"].forEach(id=>{
+  const el=document.getElementById(id);
+  el.addEventListener("input",renderMain);
+  el.addEventListener("change",renderMain);
+});
+if(fSort){
+  fSort.addEventListener("change",()=>{
+    const parts=fSort.value.split(":");
+    if(!parts[0]) return;
+    sortK=parts[0];
+    sortDir=Number(parts[1])||-1;
+    updateSortUI();
+    renderMain();
+  });
+}
+
+/* ===== 主题切换 ===== */
+(function(){
+  const btn=document.getElementById("themeToggle");
+  const root=document.documentElement;
+  const meta=document.getElementById("themeColor");
+  const mq=window.matchMedia?window.matchMedia("(prefers-color-scheme: light)"):null;
+  let stored=null;
+  try{stored=localStorage.getItem("ocgo-theme");}catch(e){}
+  function paint(t){
+    root.dataset.theme=t;
+    if(meta) meta.setAttribute("content",t==="light"?"#f6f4ef":"#0b0d10");
+    if(btn){
+      const other=t==="light"?"深色":"浅色";
+      btn.title="切换到"+other+"主题";
+      btn.setAttribute("aria-label","当前"+(t==="light"?"浅色":"深色")+"主题，切换到"+other+"主题");
+    }
+  }
+  function setTheme(t,persist){
+    paint(t);
+    if(persist){try{localStorage.setItem("ocgo-theme",t);}catch(e){}}
+  }
+  paint(root.dataset.theme==="light"?"light":"dark");
+  if(btn) btn.addEventListener("click",()=>setTheme(root.dataset.theme==="light"?"dark":"light",true));
+  if(!stored&&mq&&mq.addEventListener){
+    mq.addEventListener("change",e=>{
+      let now=null; try{now=localStorage.getItem("ocgo-theme");}catch(err){}
+      if(!now) paint(e.matches?"light":"dark");
+    });
+  }
+})();
+
+/* ===== 导航高度 + 当前章节 ===== */
+(function(){
+  const nav=document.querySelector(".nav-wrap");
+  if(!nav) return;
+  const setNav=()=>document.documentElement.style.setProperty("--nav-h",nav.offsetHeight+"px");
+  setNav();
+  if("ResizeObserver" in window) new ResizeObserver(setNav).observe(nav);
+  else window.addEventListener("resize",setNav);
+
+  const links=[...document.querySelectorAll(".nav-inner a")];
+  const sections=links.map(a=>document.querySelector(a.getAttribute("href"))).filter(Boolean);
+  let ticking=false;
+  function update(){
+    const navH=parseInt(getComputedStyle(document.documentElement).getPropertyValue("--nav-h"))||56;
+    const y=window.scrollY+navH+90;
+    let current=sections[0];
+    for(const s of sections){ if(s.offsetTop<=y) current=s; }
+    links.forEach(a=>a.setAttribute("aria-current",a.getAttribute("href")==="#"+current.id?"true":"false"));
+    ticking=false;
+  }
+  window.addEventListener("scroll",()=>{
+    if(!ticking){ticking=true;requestAnimationFrame(update);}
+  },{passive:true});
+  update();
+})();
+
+/* ===== 小表横向滚动容器 ===== */
+const scrollWraps=[];
+document.querySelectorAll("table").forEach(t=>{
+  if(t.id==="main"||t.id==="allTable") return;
+  const wrap=document.createElement("div");
+  wrap.className="table-scroll";
+  const sec=t.closest("section");
+  const head=sec&&sec.querySelector("h2");
+  wrap.dataset.label=head?head.textContent.trim():"数据表";
+  t.parentNode.insertBefore(wrap,t);
+  wrap.appendChild(t);
+  scrollWraps.push(wrap);
+});
+const narrow=matchMedia("(max-width: 900px)");
+function syncScrollRegions(){
+  scrollWraps.forEach(w=>{
+    w.classList.toggle("is-scrollable",w.scrollWidth>w.clientWidth+1);
+    if(narrow.matches){
+      w.tabIndex=0;
+      w.setAttribute("role","region");
+      w.setAttribute("aria-label",w.dataset.label+"，可横向滚动");
+    }else{
+      w.removeAttribute("tabindex");
+      w.removeAttribute("role");
+      w.removeAttribute("aria-label");
+    }
+  });
+}
+syncScrollRegions();
+if(narrow.addEventListener) narrow.addEventListener("change",syncScrollRegions);
+window.addEventListener("resize",syncScrollRegions);
+
+document.querySelectorAll("table thead th").forEach(th=>{
+  if(!th.hasAttribute("scope")) th.setAttribute("scope","col");
+});
+
+/* ===== 打印时展开来源 ===== */
+window.addEventListener("beforeprint",()=>{
+  document.querySelectorAll("details").forEach(d=>{
+    d.dataset.wasOpen=d.open?"1":"0";
+    d.open=true;
+  });
+});
+window.addEventListener("afterprint",()=>{
+  document.querySelectorAll("details").forEach(d=>{
+    if(d.dataset.wasOpen==="0") d.open=false;
+    delete d.dataset.wasOpen;
+  });
+});
+
+/* ===== 性价比 ===== */
+(function(){
+  const list=[...D].filter(d=>!d.free).sort((a,b)=>b.value-a.value);
+  document.querySelector("#tValue tbody").innerHTML=list.map((d,i)=>`
+    <tr>
+      <td class="num">${i+1}</td>
+      <td><span class="tier ${TIERCLS[d.t]}">${d.t}</span> <b>${d.n}</b></td>
+      <td class="num">${fmt(d.req)} · $${d.q}</td>
+      <td class="num">${d.rpd.toFixed(1)}</td>
+      <td class="num"><b>${fmt(d.value)}</b></td>
+      <td class="tag">${d.note}</td>
+    </tr>`).join("");
+})();
+
+/* ===== 价格：token 单价 ===== */
+(function(){
+  const list=[...D].filter(d=>!d.free).sort((a,b)=>a.pin-b.pin||a.pout-b.pout);
+  const mx=Math.max(...D.map(d=>d.pin));
+  document.querySelector("#tPrice tbody").innerHTML=list.map((d,i)=>`
+    <tr>
+      <td class="num">${i+1}</td>
+      <td><span class="tier ${TIERCLS[d.t]}">${d.t}</span> <b>${d.n}</b></td>
+      <td class="num"><b>${d.pin}</b></td>
+      <td class="num">${d.pout}</td>
+      <td class="num">${d.pc}</td>
+      <td class="num"><span class="bar" style="width:80px;display:inline-block"><i style="width:${(d.pin/mx*100).toFixed(0)}%"></i></span></td>
+      <td class="num tag">${d.rel}</td>
+      <td>${d.t}</td>
+    </tr>`).join("");
+})();
+
+/* ===== 价格：隐含单价 ===== */
+(function(){
+  const list=[...D].filter(d=>!d.free).sort((a,b)=>a.unit-b.unit);
+  const best=list[0].unit;
+  document.querySelector("#tQuota tbody").innerHTML=list.map((d,i)=>`
+    <tr>
+      <td class="num">${i+1}</td>
+      <td><span class="tier ${TIERCLS[d.t]}">${d.t}</span> <b>${d.n}</b></td>
+      <td class="num">$${d.unit.toFixed(6)}</td>
+      <td class="num">${(d.unit/best).toFixed(1)}×</td>
+      <td class="num">${fmt(d.req)}</td>
+      <td>${d.t} ${TIERNAME[d.t]}</td>
+    </tr>`).join("");
+})();
+
+/* ===== 多模态 ===== */
+(()=>{
+  const use=d=>{
+    if(!d.vision) return "纯文本，无法看图";
+    if(d.has("audio")&&d.has("pdf")) return "全模态（PDF + 音视频）";
+    if(d.has("pdf")&&d.has("video")) return "PDF + 视频";
+    if(d.has("pdf")) return "PDF 文档直读";
+    if(d.has("audio")&&d.has("video")) return "图片 + 音频 + 视频";
+    if(d.has("audio")) return "图片 + 音频";
+    if(d.has("video")) return "图片 + 视频理解";
+    return "图片识别";
+  };
+  const mark=(d,m)=>d.has(m)
+    ? '<span class="mod m-vision">✓</span>'
+    : '<span class="mod m-text" style="opacity:.5">—</span>';
+  const vision=D.filter(d=>d.vision).sort((a,b)=>b.s-a.s);
+  const others=D.filter(d=>!d.vision);
+  const all=[...vision,...others];
+  document.querySelector("#tVision tbody").innerHTML=all.map(d=>`
+    <tr>
+      <td><b>${d.n}</b>${d.nw?'<span class="flag-new">新</span>':''}</td>
+      <td class="num"><span class="tier ${TIERCLS[d.t]}">${d.t}</span></td>
+      <td>${mark(d,"image")}</td>
+      <td>${mark(d,"pdf")}</td>
+      <td>${mark(d,"video")}</td>
+      <td>${mark(d,"audio")}</td>
+      <td class="num">${d.free?'不限':fmt(d.req)}</td>
+      <td class="tag">${use(d)}</td>
+    </tr>`).join("");
+})();
+
+updateSortUI();
+renderMain();
+
+/* ===== 完整清单：移动端卡片 ===== */
+(function buildAllCards(){
+  const table=document.getElementById("allTable");
+  const box=document.getElementById("allCards");
+  if(!table||!box) return;
+  const heads=[...table.tHead.rows[0].cells].map(c=>c.textContent.trim());
+  const items=[...table.tBodies[0].rows].map(tr=>{
+    const cells=[...tr.cells];
+    const title=cells[0].innerHTML;
+    const grid=cells.slice(1).map((td,i)=>`<div><dt>${heads[i+1]}</dt><dd>${td.innerHTML}</dd></div>`).join("");
+    return `<li class="model-card"><div class="mc-top"><div class="mc-name">${title}</div></div><dl class="mc-grid">${grid}</dl></li>`;
+  });
+  box.innerHTML=`<ul>${items.join("")}</ul>`;
+})();
+
+syncScrollRegions();
+</script>
+</body>
+</html>
+
+
+
+
+
+
+
